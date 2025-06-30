@@ -28,4 +28,4 @@ jobs:
         cd project
     - name: Run Tests
       run: |
-        python manage.py test
+        python project/manage.py test
