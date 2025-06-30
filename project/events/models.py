@@ -33,8 +33,8 @@ class Location(models.Model):
         verbose_name_plural = 'Locations'
 
 class EventCategory(models.Model): 
-    category_id = models.ForeignKey("Category", on_delete=models.CASCADE, related_name='event_categories')
-    event_id = models.ForeignKey("Event", on_delete=models.CASCADE, related_name='event_categories')
+    category = models.ForeignKey("Category", on_delete=models.CASCADE, related_name='event_categories')
+    event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name='event_categories')
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -44,3 +44,16 @@ class Category(models.Model):
 
     class Meta:
         verbose_name_plural = 'Categories'
+
+class EventAttendee(models.Model):
+    event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name='attendees')
+    user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE, related_name='attended_events')
+    joined_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[('going', 'Going'), ('interested', 'Interested'), ('not_going', 'Not Going')], default='interested')
+
+    class Meta:
+        unique_together = ('event', 'user')
+        verbose_name_plural = 'Event Attendees'
+
+    def __str__(self):
+        return f"{self.user.username} attending {self.event.title}"

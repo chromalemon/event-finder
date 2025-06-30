@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -6,14 +5,18 @@
     <title>{% block title %}Event Finder{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+    <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon" />
+    {% block head %}{% endblock %}
 </head>
 <body>
     <header>
         <nav>
             <a href="{% url 'dashboard' %}">Home</a> |
-            <a href="{% url 'profile' %}">Profile</a> |
+            <a href="{% url 'profile' %}">Your Profile</a> |
+            <a href="{% url 'profile' %}">Search Profiles</a> |
             <a href="{% url 'create_event' %}">Create Event</a> |
-            <a href="{% url 'discover_events' %}">Discover Events</a> |
+            <a href="{% url 'view_events' %}">Discover Events</a> |
+            <a href="{% url 'chat' %}">Chats</a> |
             <a href="{% url 'logout' %}">Logout</a>
         </nav>
     </header>

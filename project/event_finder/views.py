@@ -14,6 +14,12 @@ def home(request):
 def dashboard(request):
     upcoming_events = (
         Event.objects.filter(host=request.user, datetime__gte=now())
-        .order_by('datetime')[:5]
+        .order_by('datetime')
     )
-    return render(request, 'event_finder/dashboard.html', {'upcoming_events': upcoming_events})
+    if not upcoming_events:
+        messages.info(request, "You don't have any upcoming events. Create one now!")
+    joined_events = (
+        Event.objects.filter(attendees__user=request.user, datetime__gte=now())
+        .order_by('datetime')
+    )
+    return render(request, 'event_finder/dashboard.html', {'upcoming_events': upcoming_events, 'joined_events': joined_events})

@@ -1,5 +1,3 @@
-</html>
-
 {% extends "event_finder/base.html" %}
 
 {% block title %}Dashboard{% endblock %}
@@ -12,13 +10,13 @@
     <ul>
         <li><a href="{% url 'profile' %}">Your Profile</a></li>
         <li><a href="{% url 'create_event' %}">Create a New Event</a></li>
-        <li><a href="{% url 'discover_events' %}">Discover Events</a></li>
+        <li><a href="{% url 'view_events' %}">Discover Events</a></li>
         <li><a href="{% url 'logout' %}">Logout</a></li>
     </ul>
 </section>
 
 <section class="upcoming-events">
-    <h2>Your Upcoming Events</h2>
+    <h2>Created Events</h2>
     {% if upcoming_events %}
         <ul>
             {% for event in upcoming_events %}
@@ -30,6 +28,19 @@
         </ul>
     {% else %}
         <p>You don't have any upcoming events. <a href="{% url 'create_event' %}">Create one now</a>.</p>
+    {% endif %}
+    <h2>Joined Events</h2>
+    {% if joined_events %}
+        <ul>
+            {% for event in joined_events %}
+                <li>
+                    <a href="{% url 'view_event' event.event_id %}">{{ event.title }}</a>
+                    on {{ event.datetime|date:"D, M j, Y @ H:i" }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You haven't joined any events yet. <a href="{% url 'view_events' %}">Discover events</a>.</p>
     {% endif %}
 </section>
 {% endblock %}

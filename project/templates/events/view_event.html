@@ -1,0 +1,80 @@
+{% extends "event_finder/base.html" %}
+{% block title %}View Event{% endblock %}
+{% block content %}
+<div class="event-details">
+<h1>{{ event.title }}</h1>
+<p class="detail"><strong>Date:</strong> {{ event.datetime|date:"M d, Y H:i" }}</p>
+<p class="detail"><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city }}, {{ event.location.country }}</p>
+<p class="detail"><strong>Hosted by: </strong><a href="{% url 'profile_detail' event.host.pk %}">{{ event.host.username }}</p></a>
+<p class="detail"><strong>Description:</strong> {{ event.description }}</p>
+<p class="detail"><strong>Categories:</strong>
+    {% for ec in event.event_categories.all %}
+        {{ ec.category.name }}{% if not forloop.last %}, {% endif %}
+    {% empty %}
+        No categories
+    {% endfor %}</p>
+<p class="detail"><strong>Attendees:</strong>
+    {% if event.attendees.count > 0 %}
+        <ul>
+            {% for attendee in event.attendees.all %}
+                <li><a href="{% url 'profile_detail' attendee.user.pk %}">{{ attendee.user.username }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        No attendees yet.
+    {% endif %}</p>
+</div>
+<form method="POST" action="{% url 'join_event' event.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="event_id" value="{{ event.pk }}">
+<button type="submit" class="btn-join">Join Event</button>
+</form>
+
+
+<a href="{% url 'view_events' %}" class="btn-back">Back to events</a>
+
+
+<style>
+    h1 {
+        font-size: 1.5em;
+        margin: 20px;
+    }
+    .detail{
+        font-size: 1.2em;
+        margin: 10px 20px;
+        width: 80%;
+        padding: 10px;
+    }
+    .btn-join{
+        display: inline-block;
+        margin: 20px;
+        padding: 10px 20px;
+        background-color:rgb(20, 176, 41);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+    .btn-back{
+        display: inline-block;
+        margin: 20px;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+    .event-details {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+    p{
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+</style>
+{% endblock %}
