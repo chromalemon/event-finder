@@ -1,29 +1,17 @@
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Create Event</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
-    <!-- Leaflet CSS -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <style>
-      #map {
-        height: 400px;
-        width: 100%;
-        margin-top: 20px;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Create Event</h1>
+{% extends "event_finder/base.html" %}
+
+{% block title %}Create Event{% endblock %}
+{% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>{% endblock %}
+
+{% block content %}
+
+
+<h1>Create Event</h1>
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %} {{ form.title.label_tag }} {{ form.title }}<br />
       {{ form.description.label_tag }} {{ form.description }}<br />
       {{ form.datetime.label_tag }} {{ form.datetime }}<br />
+      {{ form.categories.label_tag }} {{ form.categories }}<br />
 
       <label for="id_name">Location Name:</label>
 
@@ -48,7 +36,7 @@
       <button type="submit">Create Event</button>
     </form>
 
-    <div id="map" style="height: 50%; width: 100%; margin-top: 20px"></div>
+    <div id="map" style="height: 400px; width: 100%; margin-top: 20px"></div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -178,5 +166,4 @@
           });
       }
     </script>
-  </body>
-</html>
+{% endblock %}

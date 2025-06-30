@@ -1,0 +1,213 @@
+{% extends "event_finder/base.html" %}
+
+{% block title %}View Events{% endblock %}
+{% block content %}
+<h1>Discover Events</h1>
+
+<form method="get" class="search-form">
+
+    <input type="text" name="q" placeholder="Search by event or location name" value="{{ query }}" class="search-input">
+
+    <button type="button" id="toggle-filters" class="filter-toggle">More Filters ▼</button>
+
+    <div id="extra-filters" class="extra-filters hidden">
+        <input type="text" name="city" placeholder="City" value="{{ city_filter }}">
+        <input type="text" name="country" placeholder="Country" value="{{ country_filter }}">
+        <fieldset>
+            <legend>Categories:</legend>
+            {% for cat in categories %}
+            <label>
+                <input type="checkbox" name="category" value="{{ cat.name }}" 
+                {% if cat.name in category_filters %}checked{% endif %}>
+                {{ cat.name }}
+            </label>
+            {% endfor %}
+        </fieldset>
+
+        <label for="start_date">From:</label>
+        <input type="date" name="start_date" id="start_date" value="{{ start_date }}">
+
+        <label for="end_date">To:</label>
+        <input type="date" name="end_date" id="end_date" value="{{ end_date }}">
+
+        <label for="sort">Sort by Date:</label>
+        <select name="sort" id="sort">
+            <option value="date_asc" {% if sort_order == 'date_asc' %}selected{% endif %}>Ascending</option>
+            <option value="date_desc" {% if sort_order == 'date_desc' %}selected{% endif %}>Descending</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn-submit">Search/Filter</button>
+    <a href="{% url 'view_events' %}" class="btn-clear">Clear Filters</a>
+</form>
+{% if events %}
+    <div class="events-container">
+    {% for event in events %}
+        <div class="event-card">
+            <h3><a href="{% url 'view_event' event.event_id %}">{{ event.title }}</a></h3>
+            <p><strong>Date:</strong> {{ event.datetime|date:"M d, Y H:i" }}</p>
+            <p><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city }}, {{ event.location.country }}</p>
+            <p><strong>Hosted by:</strong> {{ event.host.username }}</p>
+            <p class="description"><strong>Description:</strong> {{ event.description|truncatewords:20 }}</p>
+            <p><strong>Categories:</strong>
+                {% for ec in event.event_categories.all %}
+                    {{ ec.category.name }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                    No categories
+                {% endfor %}
+            </p>
+            <p><strong>Attendees:</strong>
+                {{ event.attendees.count }}</p>
+        </div>
+    {% endfor %}
+    </div>
+
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+        {% endif %}
+    </div>
+{% else %}
+    <p>No events found.</p>
+{% endif %}
+
+<script>
+    const toggleBtn = document.getElementById('toggle-filters');
+    const extraFilters = document.getElementById('extra-filters');
+
+    toggleBtn.addEventListener('click', () => {
+        extraFilters.classList.toggle('hidden');
+        toggleBtn.textContent = extraFilters.classList.contains('hidden') ? 'More Filters ▼' : 'Less Filters ▲';
+    });
+</script>
+
+<style>
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.search-input {
+    flex: 1 1 300px;
+    padding: 8px;
+    font-size: 1rem;
+}
+
+.filter-toggle {
+    padding: 8px 12px;
+    cursor: pointer;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+.extra-filters {
+    flex-basis: 100%;
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.extra-filters.hidden {
+    display: none;
+}
+
+.extra-filters input,
+.extra-filters select {
+    padding: 6px;
+    font-size: 1rem;
+}
+
+.extra-filters fieldset {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.extra-filters legend {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.btn-submit {
+    padding: 8px 16px;
+    background-color: #28a745;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-clear {
+    padding: 8px 16px;
+    background-color: #dc3545;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-left: 10px;
+}
+
+/* Event cards */
+.events-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.event-card {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease;
+}
+
+.event-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.event-card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.event-card h3 a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+.event-card h3 a:hover {
+    text-decoration: underline;
+}
+.description{
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 30px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.page-link {
+    margin: 0 15px;
+    padding: 6px 12px;
+    background-color: #0066cc;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.page-link:hover {
+    background-color: #004a99;
+}
+</style>
+{% endblock %}

@@ -54,4 +54,17 @@ def logout(request):
 
 @login_required
 def profile(request):
-    pass
+    user = request.user
+    if not user:
+        return HttpResponse("User not found", status=404)
+    
+    return render(request, 'users/profile.html', {'user': user})
+
+@login_required
+def profile_detail(request, user_id):
+    if user_id is None:
+        return render(request, 'users/profile_detail.html', {'user': request.user})
+    user = User.objects.get(id=user_id)
+    if not user:
+        return HttpResponse("User not found", status=404)
+    return render(request, 'users/profile_detail.html', {'user': user})

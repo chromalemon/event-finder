@@ -3,6 +3,10 @@ from .models import Event
 from django.utils import timezone
 
 class EventCreationForm(forms.ModelForm):
+    categories = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Categories (comma-separated)'}),
+    )
     class Meta:
         model = Event
         fields = ['title', 'description', 'datetime', 'location']

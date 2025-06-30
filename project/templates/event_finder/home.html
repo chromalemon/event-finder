@@ -1,16 +1,9 @@
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="">
-    </head>
-    <body>
-        <h1> Home Page </h1>
-        <button onclick="location.href='{% url 'register' %}'">Register</button>
-        <button onclick="location.href='{% url 'login' %}'">Login</button
-        <script src="" async defer></script>
-    </body>
-</html>
+{% extends 'event_finder/base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>Welcome to Event Finder</h1>
+<p>Discover and create events in your area.</p>
+<button onclick="location.href='{% url 'register' %}'">Register</button>
+    <button onclick="location.href='{% url 'login' %}'">Login</button>
+{% endblock %}

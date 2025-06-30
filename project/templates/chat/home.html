@@ -1,0 +1,27 @@
+{% extends 'event_finder/base.html' %}
+
+{% block title %}Chats{% endblock %}
+
+{% block content %}
+<h1>Chat Home</h1>
+<p>Welcome to the chat section! Here you can manage your chats.</p>
+<p>Currently, this is a placeholder page. You can implement chat functionality here.</p>
+<p>For now, you can return to the <a href="{% url 'view_events' %}">events page</a> or <a href="{% url 'dashboard' %}">dashboard</a>.</p>
+<style>
+    h1 {
+        font-size: 2em;
+        margin: 20px 0;
+    }
+    p {
+        font-size: 1.2em;
+        margin: 10px 0;
+    }
+    a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
