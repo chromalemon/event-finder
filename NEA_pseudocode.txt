@@ -1,0 +1,373 @@
+<--
+#Login validation 
+
+function login(username, password)
+
+    user = database.GET_USER(username=username)
+    if user == NULL then
+        return {ok: False, msg: "Error: Username not found"}
+    endif
+
+    if HASH(password) != user.password then
+        return {ok: False, msg: "Error: incorrect password"}
+    endif
+
+    return {ok: True, msg: "Success: User logged in"}
+
+endfunction
+
+-->
+<--
+#User registration
+
+function register_user(username, password)
+
+    if not is_username_available(username) then
+        return {ok: False, msg: "Error: Username is taken"}
+    endif
+
+    if not is_valid_password(password) then
+        return {ok: False, msg: "Error: Password too weak or invalid"}
+    endif
+
+    hashed = HASH(password)
+
+    //atomic save
+    v = database.ADD_USER(username, hashed)
+    if not v.ok then
+        return v
+    endif
+    
+
+    return {ok: True, msg: "Success: User registered"}
+
+endfunction
+
+-->
+<--
+#Create event
+
+function create_event(title, description, location, dt, user_id)
+
+    if not IS_LOGGED_IN(user_id) then
+        return {ok: False, msg: "Error: User must log in"}
+    endif
+
+    v = validate_event_fields(title, description, location, dt)
+    if not v.ok then
+        return v
+    endif
+
+    event_id = GENERATE_UNIQUE_ID()
+    created_at = CURRENT_DATETIME()
+
+    BEGIN_TRANSACTION()
+        v = database.ADD_EVENT(event_id, user_id, title, description, location, dt, created_at)
+        if not v.ok then
+            ROLLBACK()
+            return v
+        endif
+    COMMIT()
+        
+    return {ok: True, msg: "Success: Event created", id: event_id}
+
+endfunction
+
+-->
+<--
+#Event updating
+
+function update_event(event_id,user_id, new_title, new_desc, new_loc, new_dt)
+
+    event = database.GET_EVENT(event_id)
+    if event == NULL then
+        return {ok: False, msg: "Error: Event not found"}
+    endif
+
+    if event.user_id != user_id and not IS_ADMIN(user_id) then
+        return {ok: False, msg: "Error: Not authorised to update this event"}
+    endif
+
+    title = (if new_title == "" then event.title else new_title endif)
+    description = (if new_desc == "" then event.description else new_desc endif)
+    location = (if new_loc == "" then event.location else new_loc endif)
+    dt = (if new_dt == "" then event.dt else new_dt endif)
+
+    v = validate_event_fields(title, description, location, dt)
+    if not v.ok then
+        return v
+    endif
+
+    // atomic save
+    event.title = title
+    event.description = description
+    event.location = location
+    event.dt = dt
+    v = database.SAVE_EVENT(event)
+    if not v.ok then
+        return v
+    endif
+
+    return {ok: True, msg: "Success: Event updated", id: event_id}
+
+endfunction
+<--
+#Leaving event
+
+function leave_event(event_id, user_id)
+
+    if not IS_LOGGED_IN(user_id) then
+        return {ok: False, msg: "Error: User must log in"}
+    endif
+
+    if database.GET_EVENT(event_id) == NULL then
+        return {ok: False, msg: "Error: Event not found"}
+    endif
+
+    if database.GET_EVENT_ATTENDEE(user_id, event_id) == NULL then
+        return {ok: False, msg: "Error: User is not an attendee"}
+    endif
+
+    // atomic save
+    v = database.REMOVE_EVENT_ATTENDEE(user_id, event_id)
+    if not v.ok then
+        return v
+    endif
+    
+    return {ok: True, msg: "Success: User left event"}
+
+endfunction
+
+
+-->
+<--
+#Fetch events 
+
+function fetch_events(page, page_size, sort_by, title, keyword, location, dt) 
+
+    if page < 1 then page = 1 endif
+    if page_size < 0 then page_size = 10 endif
+    
+    q = database.EVENTS_QUERY()
+
+    if title != "" then 
+        q = q.WHERE_TITLE_CONTAINS(title)
+    endif
+
+    if keyword != "" then 
+        q = q.WHERE_TITLE_OR_DESC_CONTAINS(keyword)
+    endif
+
+    if location != "" then 
+        q = q.WHERE_location_CONTAINS(location)
+    endif
+
+    if dt != "" then
+        q = q.WHERE_DT_CONTAINS(dt)
+    endif
+
+    switch sort_by 
+        case "dt_asc": q = q.ORDER_BY("dt", "ASC")
+        case "dt_desc": q = q.ORDER_BY("dt", "DESC")
+        default: q = q.ORDER_BY("dt", "ASC")
+    endswitch
+
+    total = q.COUNT()
+    items = q.PAGINATE(page, page_size).FETCH()
+
+    return {ok: True, msg: "Success: Fetched events", data: {
+        items: items,
+        total: total,
+        page: page, 
+        page_size: page_size, 
+        sort_by: sort_by,
+        filters: {title: title, keyword: keyword, location: location, dt: dt}
+    }}
+
+endfunction
+
+-->
+<--
+#Join event
+
+function join_event(user_id, event_id)
+
+    if not IS_LOGGED_IN(user_id) then
+        return {ok: False, msg: "Error: User must log in"}
+    endif
+
+    if database.GET_EVENT(event_id) == NULL then
+        return {ok: False, msg: "Error: Event not found"}
+    endif
+
+    if database.GET_EVENT_ATTENDEE(user_id, event_id) != NULL then
+        return {ok: False, msg: "Error: User is already an attendee"}
+    endif
+
+    joined_at = CURRENT_DATETIME()
+
+    // atomic save
+    v = database.ADD_EVENT_ATTENDEE(user_id, event_id, joined_at)
+    if not v.ok then
+        return v
+    endif
+
+    return {ok: True, msg: "Success: User joined event"}
+
+endfunction
+
+-->
+
+
+
+
+<--
+#Password validity checker
+
+function is_valid_password(password)
+
+    if LENGTH(password) < 8 then
+        return False
+    endif
+
+    if not CONTAINS_LOWERCASE(password) then
+        return False
+    endif
+
+    if not CONTAINS_UPPERCASE(password) then
+        return False
+    endif
+
+    if not CONTAINS_DIGIT(password) then
+        return False
+    endif
+
+    if CONTAINS_WHITESPACE(password) then
+        return False
+    endif
+
+    return True
+
+endfunction
+-->
+<--
+#Checking username availability
+
+function is_username_available(username)
+
+    if database.GET_USER(username=username) == NULL then
+        return True
+    else
+        return False
+    endif
+
+endfunction
+-->
+<--
+#Event validity checker
+
+function validate_event_fields(title, description, location, dt)
+
+    if title == "" or description == "" or location == "" or dt == "" then
+        return {ok: False, msg: "Error: Missing required details"}
+    endif
+
+    if LENGTH(title) > 120 then
+        return {ok: False, msg: "Error: Title too long"}
+    endif
+
+    if dt < CURRENT_DATETIME() then
+        return {ok: False, msg: "Error: event cannot be in the past"}
+    endif
+
+    return {ok: True, msg: ""}
+
+endfunction 
+-->
+<--
+#User logout
+
+function logout(user_id)
+
+    if not IS_LOGGED_IN(user_id) then
+        return {ok: False, msg: "Error: User must log in"}
+    endif
+
+    END_SESSION(user_id)
+    return {ok: True, msg: "Success: User logged out"}
+
+endfunction
+-->
+
+
+
+
+
+
+[Authentication & Accounts
+
+logout(user_id) — end session; return “Logged out”. [Core]
+
+is_valid_password(password) — helper; length/complexity; returns True/False. [Core]
+
+is_valid_email(email) — helper; simple format check; True/False. (if you store emails) [Core]
+
+request_password_reset(email) / reset_password(token, new_password) — flows can be brief; messages. [Optional]
+
+Event Lifecycle (organiser)
+
+get_event(event_id) — fetch + 404 handling; returns event/NULL. [Core]
+
+update_event(event_id, fields, organiser_id) — auth check (is organiser), validate, save; message. [Core]
+
+cancel_event(event_id, organiser_id) — auth check, mark cancelled, notify attendees (conceptually); message. [Core]
+
+Participation
+
+leave_event(user_id, event_id) — ensure joined, then remove; message. [Core]
+
+is_attendee(user_id, event_id) — helper used by join/leave/chat; True/False. [Core]
+
+list_user_events(user_id) — returns events the user organises or has joined. [Core]
+
+Browsing & Search
+
+list_events(page, page_size, sort_by) — pagination + sort (date/newest); returns collection. [Core]
+
+get_event_detail(event_id) — event + attendees count; returns record. [Core]
+
+(You already have filter; consider adding date-range/geo as params later if you like.)
+
+Chat (per event)
+
+send_message(user_id, event_id, text, timestamp) — require is_attendee=True; save; message. [Core]
+
+fetch_messages(event_id, since_timestamp, limit) — return ordered list; newest N. [Core]
+
+create_chat_room_for_event(event_id) — called when event created; idempotent; message. [Optional]
+
+moderate_message(message_id, action, moderator_id) — delete/hide if organiser; message. [Optional]
+
+QR Join (optional feature)
+
+generate_qr_for_event(event_id, organiser_id) — auth check; make signed URL; return image/URL. [Optional]
+
+join_event_via_qr(request_url, user_id?) — validate token/expiry → if authed join; else redirect flow; message. [Optional]
+
+Ticketing (optional feature)
+
+set_ticket_price(event_id, organiser_id, price) — validate ≥ 0; save; message. [Optional]
+
+start_checkout(user_id, event_id) — prechecks (not already joined, tickets available), create payment intent; returns “Proceed to pay”. [Optional]
+
+confirm_payment(payment_ref) — verify (webhook-style), on success add attendee + issue ticket; message. [Optional]
+
+validate_ticket(qr_token, event_id) — scan at door; check ownership/used/expiry; returns “Valid/Invalid”. [Optional]
+
+Validation / Utilities (used across)
+
+is_future_datetime(dt) — helper; True/False. [Core]
+
+sanitize_text(text, max_len) — trim/strip dangerous chars; returns cleaned text. [Core]
+
+user_can_edit_event(user_id, event_id) — helper; True/False. [Core]]
