@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib import messages
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth import login as auth_login, logout as auth_logout, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -17,7 +17,6 @@ def empty(request):
 
 
 def register(request):
-
     if request.user.is_authenticated:
         return redirect("dashboard")
     if request.method == "POST":
@@ -32,7 +31,6 @@ def register(request):
     return render(request, 'users/register.html', {'form': form})
     
 def login(request):
-
     if request.user.is_authenticated:
         return redirect("dashboard")
     if request.method == "POST":
@@ -53,18 +51,22 @@ def logout(request):
     return redirect("home")
 
 @login_required
-def profile(request):
+def profile(request, user_id=None):
     user = request.user
-    if not user:
-        return HttpResponse("User not found", status=404)
+    if user_id is None or user_id == user.id:
+        return render(request, "users/view_profile.html", {"user": user, "own": True})
+    user = get_object_or_404(User, id=user_id)
+    return render(request, "users/view_profile.html", {"user": user, "own": False})
     
-    return render(request, 'users/profile.html', {'user': user})
+@login_required
+def profile_search(request):
+    return HttpResponse("placeholder for profile search page")
 
 @login_required
-def profile_detail(request, user_id):
-    if user_id is None:
-        return render(request, 'users/profile_detail.html', {'user': request.user})
-    user = User.objects.get(id=user_id)
-    if not user:
-        return HttpResponse("User not found", status=404)
-    return render(request, 'users/profile_detail.html', {'user': user})
+def profile_edit(request):
+    if request.method == "POST":
+        pass
+    else:
+        return HttpResponse("placeholder for profile edit page")
+        #form = ProfileEditForm()
+

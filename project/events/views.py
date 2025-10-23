@@ -139,10 +139,7 @@ def edit_event(request, event_id):
     #edit a specific event
     pass
 
-@login_required
-def view_my_events(request):
-    #view events created by the user
-    pass
+
 
 
 @login_required
