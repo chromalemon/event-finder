@@ -7,4 +7,5 @@ urlpatterns = [
     path("view/<int:event_id>/", views.view_event, name="view_event"),
     path("edit/<int:event_id>/", views.edit_event, name="edit_event"),
     path("join/<int:event_id>/", views.join_event, name="join_event"),
+    path("leave/<int:event_id>/", views.leave_event, name="leave_event"),
 ]

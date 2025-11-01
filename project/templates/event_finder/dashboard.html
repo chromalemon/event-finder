@@ -16,26 +16,13 @@
 </section>
 
 <section class="upcoming-events">
-    <h2>Created Events</h2>
-    {% if upcoming_events %}
-        <ul>
-            {% for event in upcoming_events %}
-                <li>
-                    <a href="{% url 'view_event' event.event_id %}">{{ event.title }}</a>
-                    on {{ event.datetime|date:"D, M j, Y @ H:i" }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>You don't have any upcoming events. <a href="{% url 'create_event' %}">Create one now</a>.</p>
-    {% endif %}
     <h2>Joined Events</h2>
     {% if joined_events %}
         <ul>
             {% for event in joined_events %}
                 <li>
-                    <a href="{% url 'view_event' event.event_id %}">{{ event.title }}</a>
-                    on {{ event.datetime|date:"D, M j, Y @ H:i" }}
+                    <a href="{% url 'view_event' event.id %}">{{ event.title }}</a>
+                    on {{ event.start_time|date:"D, M j, Y @ H:i" }}
                 </li>
             {% endfor %}
         </ul>

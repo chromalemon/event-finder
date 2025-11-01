@@ -4,39 +4,40 @@ class Event(models.Model):
     host = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE, related_name='events')
     title = models.CharField(max_length=200)
     description = models.TextField()
-    datetime = models.DateTimeField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     location = models.ForeignKey("Location", on_delete=models.SET_NULL, related_name='events', null=True, blank=True)
+
 
     def __str__(self):
         return self.title
 
     class Meta:
-        ordering = ['datetime']
+        ordering = ['start_time']
         verbose_name_plural = 'Events'
 
 class Location(models.Model):
-    name = models.CharField(max_length=100)
-    address = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)
-    country = models.CharField(max_length=100)
-    postcode = models.CharField(max_length=20)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    formatted_address = models.TextField()
+    city = models.CharField(max_length=100, null=True)
+    country = models.CharField(max_length=50, null=True)
+    postcode = models.CharField(max_length=20, null=True)
+    lat = models.FloatField()
+    long = models.FloatField()
 
     def __str__(self):
-        return f"{self.name}, {self.city}, {self.country}"
+        return f"{self.formatted_address}"
     
     class Meta:
         verbose_name_plural = 'Locations'
 
 class EventCategory(models.Model): 
-    category = models.ForeignKey("Category", on_delete=models.CASCADE, related_name='event_categories')
+    cat = models.ForeignKey("Category", on_delete=models.CASCADE, related_name='event_categories')
     event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name='event_categories')
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=30)
 
     def __str__(self):
         return self.name
@@ -48,10 +49,10 @@ class EventAttendee(models.Model):
     event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name='attendees')
     user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE, related_name='attended_events')
     joined_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=[('going', 'Going'), ('interested', 'Interested'), ('not_going', 'Not Going')], default='interested')
+    status = models.CharField(max_length=20, choices=[('going', 'Going'), ('waitlist', 'Waitlisted'), ('not_going', 'Not Going')], default='waitlist')
 
     class Meta:
-        unique_together = ('event', 'user')
+        unique_together = ('event_id', 'user_id')
         verbose_name_plural = 'Event Attendees'
 
     def __str__(self):

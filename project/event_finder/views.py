@@ -12,14 +12,16 @@ def home(request):
 
 @login_required
 def dashboard(request):
-    upcoming_events = (
-        Event.objects.filter(host=request.user, datetime__gte=now())
-        .order_by('datetime')
-    )
-    if not upcoming_events:
-        messages.info(request, "You don't have any upcoming events. Create one now!")
+    # only consider attendees with status "going"
     joined_events = (
-        Event.objects.filter(attendees__user=request.user, datetime__gte=now())
-        .order_by('datetime')
+        Event.objects.filter(
+            attendees__user_id=request.user.pk,
+            attendees__status='going',
+            start_time__gte=now()
+        )
+        .order_by('start_time')
+        .distinct()
     )
-    return render(request, 'event_finder/dashboard.html', {'upcoming_events': upcoming_events, 'joined_events': joined_events})
+    if not joined_events.exists():
+        messages.info(request, "You haven't joined any events yet. Explore and join some!")
+    return render(request, 'event_finder/dashboard.html', {'joined_events': joined_events})

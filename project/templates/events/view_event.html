@@ -1,37 +1,59 @@
 {% extends "event_finder/base.html" %}
 {% block title %}View Event{% endblock %}
 {% block content %}
-<div class="event-details">
-<h1>{{ event.title }}</h1>
-<p class="detail"><strong>Date:</strong> {{ event.datetime|date:"M d, Y H:i" }}</p>
-<p class="detail"><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city }}, {{ event.location.country }}</p>
-<p class="detail"><strong>Hosted by: </strong><a href="{% url 'profile_detail' event.host.pk %}">{{ event.host.username }}</p></a>
-<p class="detail"><strong>Description:</strong> {{ event.description }}</p>
-<p class="detail"><strong>Categories:</strong>
-    {% for ec in event.event_categories.all %}
-        {{ ec.category.name }}{% if not forloop.last %}, {% endif %}
-    {% empty %}
-        No categories
-    {% endfor %}</p>
-<p class="detail"><strong>Attendees:</strong>
-    {% if event.attendees.count > 0 %}
-        <ul>
-            {% for attendee in event.attendees.all %}
-                <li><a href="{% url 'profile_detail' attendee.user.pk %}">{{ attendee.user.username }}</a></li>
-            {% endfor %}
-        </ul>
+    <div class="event-details">
+        <h1>{{ event.title }}</h1>
+        <p class="detail"><strong>Start date:</strong> {{ event.start_time|date:"M d, Y H:i" }}</p>
+        <p class="detail"><strong>End date:</strong> {{ event.end_time|date:"M d, Y H:i" }}</p>
+        <p class="detail"><strong>Location:</strong> {{ event.location.formatted_address }}</p>
+        <p class="detail"><strong>Hosted by: </strong><a href="{% url 'profile' event.host.pk %}">{{ event.host.username }}</p></a>
+        <p class="detail"><strong>Description:</strong> {{ event.description }}</p>
+        <p class="detail"><strong>Categories:</strong>
+            {% for ec in event.event_categories.all %}
+                {{ ec.cat.name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                No categories
+            {% endfor %}</p>
+        <p class="detail"><strong>Attendees:</strong>
+            {% if event.attendees.count > 0 %}
+                <ul>
+                    {% for attendee in event.attendees.all %}
+                        <li><a href="{% url 'profile' attendee.user.id %}">{{ attendee.user.username }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                No attendees yet.
+            {% endif %}</p>
+    </div>
+
+    {% if user.is_authenticated %}
+        {% if user_attendee %}
+            {% if user_attendee.status != "not_going" %}
+                <form method="POST" action="{% url 'leave_event' event.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-join btn-leave">Leave Event</button>
+                </form>
+            {% else %}
+                <form method="POST" action="{% url 'join_event' event.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-join">Join Event</button>
+                </form>
+            {% endif %}
+        {% else %}
+            <form method="POST" action="{% url 'join_event' event.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-join">Join Event</button>
+            </form>
+        {% endif %}
     {% else %}
-        No attendees yet.
-    {% endif %}</p>
-</div>
-<form method="POST" action="{% url 'join_event' event.pk %}">
-    {% csrf_token %}
-    <input type="hidden" name="event_id" value="{{ event.pk }}">
-<button type="submit" class="btn-join">Join Event</button>
-</form>
+        <a href="{% url 'login' %}?next={% url 'view_event' event.pk %}" class="btn-join">Log in to join</a>
+    {% endif %}
 
+    {% if user == event.host %}
+        <a href="{% url 'edit_event' event.id %}" class="btn-edit">Edit event</a>
+    {% endif %}
 
-<a href="{% url 'view_events' %}" class="btn-back">Back to events</a>
+    <a href="{% url 'view_events' %}" class="btn-back">Back to events</a>
 
 
 <style>
@@ -54,11 +76,29 @@
         text-decoration: none;
         border-radius: 5px;
     }
+    .btn-leave{
+        display: inline-block;
+        margin: 20px;
+        padding: 10px 20px;
+        background-color:rgba(211, 34, 34, 1);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+    }
     .btn-back{
         display: inline-block;
         margin: 20px;
         padding: 10px 20px;
         background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+    .btn-edit{
+        display: inline-block;
+        margin: 20px;
+        padding: 10px 20px;
+        background-color: #6e25ebff;
         color: white;
         text-decoration: none;
         border-radius: 5px;

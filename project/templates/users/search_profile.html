@@ -1,0 +1,34 @@
+{% extends 'event_finder/base.html' %}
+{% block title %}Search Profiles{% endblock %}
+
+{% block content %}
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Search</button>
+</form>
+
+{% if user %}
+    <h1>{{ user.username }}'s Profile</h1>
+    <p><strong>Username:</strong> {{ user.username }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Joined:</strong> {{ user.date_joined|date:"M d, Y" }}</p>
+
+{% if user.bio %}
+    <h2>Profile Details</h2>
+    <p><strong>Bio:</strong> {{ user.bio }}</p>
+{% else %}
+    <p>This user has not set up a bio yet.</p>
+{% endif %}
+
+{% if user.profile_image %}
+    <h2>Profile Picture</h2>
+    <img src="{{ user.profile_image }}" alt="{{ user.username }}'s Profile Picture" style="max-width: 400px; max-height: 400px;">
+{% else %}
+    <p>No profile picture available.</p>
+{% endif %}
+{% else %}
+    <p>No user found with the provided username.</p>
+{% endif %}
+{% endblock %} 

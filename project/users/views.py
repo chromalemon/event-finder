@@ -4,7 +4,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth import login as auth_login, logout as auth_logout, get_user_model
 from django.contrib.auth.decorators import login_required
-from users.forms import CustomUserRegisterForm, CustomUserLoginForm
+from users.forms import CustomUserRegisterForm, CustomUserLoginForm, CustomUserProfileSearchForm
 
 # Create your views here.
 
@@ -60,7 +60,19 @@ def profile(request, user_id=None):
     
 @login_required
 def profile_search(request):
-    return HttpResponse("placeholder for profile search page")
+    if request.method == "POST":
+        form = CustomUserProfileSearchForm(request.POST)
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            try:
+                user = User.objects.get(username=query)
+            except User.DoesNotExist:
+                user = None
+            return render(request, "users/search_profile.html", {"form": form, "user": user})
+    else:
+        form = CustomUserProfileSearchForm()
+
+    return render(request, "users/search_profile.html", {"form": form, "user": None})
 
 @login_required
 def profile_edit(request):

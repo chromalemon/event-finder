@@ -7,23 +7,22 @@
 <p><strong>Email:</strong> {{ user.email }}</p>
 <p><strong>Joined:</strong> {{ user.date_joined|date:"M d, Y" }}</p>
 
-{% if user.profile %}
+{% if user.bio %}
     <h2>Profile Details</h2>
-    <p><strong>Bio:</strong> {{ user.profile.bio }}</p>
-    <p><strong>Location:</strong> {{ user.profile.location }}</p>
+    <p><strong>Bio:</strong> {{ user.bio }}</p>
 {% else %}
-    <p>This user has not set up a profile yet.</p>
+    <p>This user has not set up a bio yet.</p>
 {% endif %}
 
-{% if user.profile.profile_picture %}
+{% if user.profile_image %}
     <h2>Profile Picture</h2>
-    <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}'s Profile Picture" style="max-width: 200px; max-height: 200px;">
+    <img src="{{ user.profile_image }}" alt="{{ user.username }}'s Profile Picture" style="max-width: 400px; max-height: 400px;">
 {% else %}
     <p>No profile picture available.</p>
 {% endif %}
 
 {% if own %}
-    <a href="{% url 'profile_edit' %}">Edit Profile</a>
+    <br /><a href="{% url 'profile_edit' %}">Edit Profile</a>
 {% endif %}
 
 {% endblock %} 

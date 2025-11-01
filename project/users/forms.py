@@ -65,3 +65,13 @@ class CustomUserLoginForm(AuthenticationForm):
         strip=False,
         widget=forms.PasswordInput(attrs={'class': 'form-control'})
     )
+
+class CustomUserProfileSearchForm(forms.Form):
+    """
+    Form for searching user profiles by username or email.
+    """
+    query = forms.CharField(
+        required=True,
+        label='Search',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter username or email'})
+    )

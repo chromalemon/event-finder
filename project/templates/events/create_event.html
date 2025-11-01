@@ -5,35 +5,34 @@
 
 {% block content %}
 
-
+{% if context == "create" %}
 <h1>Create Event</h1>
+{% else %}
+<h1>Editing Event "{{ event.title }}"</h1>
+{% endif %}
     <form method="POST" enctype="multipart/form-data">
-      {% csrf_token %} {{ form.title.label_tag }} {{ form.title }}<br />
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {{ form.errors }}
+      {{ form.title.label_tag }} {{ form.title }}<br />
       {{ form.description.label_tag }} {{ form.description }}<br />
-      {{ form.datetime.label_tag }} {{ form.datetime }}<br />
+      {{ form.start_time.label_tag }} {{ form.start_time }}<br />
+      {{ form.end_time.label_tag }} {{ form.end_time }}<br />
       {{ form.categories.label_tag }} {{ form.categories }}<br />
 
-      <label for="id_name">Location Name:</label>
+      <label for="id_formatted_address">Location Name:</label>
 
-      <input
-        type="text"
-        id="id_name"
-        name="name"
-        placeholder="Click or search"
-        required
-      />
+      <input type="hidden" id="id_formatted_address" name="formatted_address"/>
+      <input type="text" id="id_search" name="search"/>
+      <input type="hidden" id="id_lat" name="lat" />
+      <input type="hidden" id="id_long" name="long" />
 
-      <button type="button" onclick="searchLocation()">Search</button
-      ><br /><br />
 
-      <input type="hidden" name="address" id="id_address" />
-      <input type="hidden" name="city" id="id_city" />
-      <input type="hidden" name="country" id="id_country" />
-      <input type="hidden" name="postcode" id="id_postcode" />
-      <input type="hidden" name="latitude" id="id_latitude" />
-      <input type="hidden" name="longitude" id="id_longitude" />
-
-      <button type="submit">Create Event</button>
+      {% if context == "create" %}
+      <br><button type="submit">Create Event</button>
+      {% else %}
+      <br><button type="submit">Save Changes</button>
+      {% endif %}
     </form>
 
     <div id="map" style="height: 400px; width: 100%; margin-top: 20px"></div>
@@ -42,128 +41,106 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-      // Trigger search on Enter key in name field
-      document
-        .getElementById("id_name")
-        .addEventListener("keydown", function (e) {
-          if (e.key === "Enter") {
-            e.preventDefault(); // Prevent form submit
-            searchLocation();
-          }
-        });
+  const $ = (id) => document.getElementById(id);
 
-      // Optional: Trigger search when user stops typing for 800ms
-      let searchTimeout;
-      document.getElementById("id_name").addEventListener("input", function () {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-          searchLocation();
-        }, 800);
-      });
-      const map = L.map("map").setView([51.5074, -0.1278], 13); // Default to London
+  // prefer the real search field id
+  const searchInput = $("id_search") || $("id_name");
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors",
-      }).addTo(map);
+  const map = L.map("map").setView([51.5074, -0.1278], 13);
 
-      let marker;
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "OpenStreetMap",
+  }).addTo(map);
 
-      map.on("click", function (e) {
-        const { lat, lng } = e.latlng;
-        if (marker) {
-          marker.setLatLng([lat, lng]);
-        } else {
-          marker = L.marker([lat, lng]).addTo(map);
-        }
+  let marker = null;
 
-        // Set lat/lon immediately
-        document.getElementById("id_latitude").value = lat;
-        document.getElementById("id_longitude").value = lng;
+  function setCoords(lat, lon) {
+    if (marker) marker.setLatLng([lat, lon]);
+    else marker = L.marker([lat, lon]).addTo(map);
 
-        // Show loading indicator in name field
-        const nameInput = document.getElementById("id_name");
-        nameInput.value = "Loading...";
+    const latEl = $("id_lat") || $("id_latitude");
+    const lonEl = $("id_long") || $("id_longitude");
+    if (latEl) latEl.value = Number(lat).toFixed(6);
+    if (lonEl) lonEl.value = Number(lon).toFixed(6);
+  }
 
-        fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
-        )
-          .then((response) => response.json())
-          .then((data) => {
-            document.getElementById("id_address").value =
-              data.display_name || "";
-            document.getElementById("id_city").value =
-              data.address?.city ||
-              data.address?.town ||
-              data.address?.village ||
-              "";
-            document.getElementById("id_country").value =
-              data.address?.country || "";
-            document.getElementById("id_postcode").value =
-              data.address?.postcode || "";
+  function setAddressFields(obj) {
+    const fmt = $("id_formatted_address");
+    const search = $("id_search");
+    if (search) search.value = obj.formatted_address || obj.display_name || "";
+    if (fmt) fmt.value = obj.formatted_address || obj.display_name || "";
 
-            const guessName =
-              data.address?.building ||
-              data.address?.attraction ||
-              data.address?.amenity ||
-              data.address?.leisure ||
-              data.address?.theatre ||
-              data.address?.road ||
-              data.name ||
-              "";
+    const cityEl = $("id_city");
+    const countryEl = $("id_country");
+    const pcEl = $("id_postcode");
 
-            nameInput.value = guessName || "";
-          })
-          .catch(() => {
-            nameInput.value = "";
-            alert("Could not fetch location name. Try again later.");
-          });
+    if (cityEl) {
+      cityEl.value = obj.city || obj.town || obj.village || obj.hamlet || obj.suburb || "";
+    }
+    if (countryEl) countryEl.value = obj.country || "";
+    if (pcEl) pcEl.value = obj.postcode || "";
+  }
+
+  async function reverseGeocode(lat, lon) {
+    // use template literal so lat/lon are interpolated correctly
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const address = data.address || {};
+    setAddressFields({
+      formatted_address: data.display_name,
+      display_name: data.display_name,
+      city: address.city || address.town || address.village || address.hamlet,
+      country: address.country,
+      postcode: address.postcode,
+    });
+  }
+
+  async function forwardGeocode(query) {
+    if (!query || !query.trim()) return;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&addressdetails=1&q=${encodeURIComponent(query.trim())}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (Array.isArray(data) && data.length) {
+      const lat = parseFloat(data[0].lat);
+      const lon = parseFloat(data[0].lon);
+      map.setView([lat, lon], 15);
+      setCoords(lat, lon);
+
+      setAddressFields({
+        formatted_address: data[0].display_name,
+        display_name: data[0].display_name,
       });
 
-      function searchLocation() {
-        const query = document.getElementById("id_name").value;
-        fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-            query
-          )}&format=json`
-        )
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.length > 0) {
-              const lat = parseFloat(data[0].lat);
-              const lon = parseFloat(data[0].lon);
-              map.setView([lat, lon], 15);
+      // optionally populate more precise address via reverse lookup
+      reverseGeocode(lat, lon).catch(() => {});
+    }
+  }
 
-              if (marker) {
-                marker.setLatLng([lat, lon]);
-              } else {
-                marker = L.marker([lat, lon]).addTo(map);
-              }
+  map.on("click", (e) => {
+    const { lat, lng } = e.latlng;
+    setCoords(lat, lng);
+    if (searchInput) searchInput.value = "Loading address...";
+    // do not clear the input after success — setAddressFields will populate it
+    reverseGeocode(lat, lng)
+      .catch(() => { if (searchInput) searchInput.value = ""; });
+  });
 
-              document.getElementById("id_latitude").value = lat;
-              document.getElementById("id_longitude").value = lon;
-              document.getElementById("id_address").value =
-                data[0].display_name || "";
-
-              // ✅ Also auto-fill `location` with display name
-              document.getElementById("id_location").value =
-                data[0].display_name || "";
-
-              // Optional: also reverse geocode to get city, country, postcode
-              fetch(
-                `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
-              )
-                .then((response) => response.json())
-                .then((data) => {
-                  const address = data.address || {};
-                  document.getElementById("id_city").value =
-                    address.city || address.town || address.village || "";
-                  document.getElementById("id_country").value =
-                    address.country || "";
-                  document.getElementById("id_postcode").value =
-                    address.postcode || "";
-                });
-            }
-          });
+  if (searchInput) {
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        forwardGeocode(searchInput.value);
       }
-    </script>
+    });
+
+    let t;
+    searchInput.addEventListener("input", () => {
+      clearTimeout(t);
+      t = setTimeout(() =>
+        forwardGeocode(searchInput.value), 800);
+    });
+  }
+</script>
 {% endblock %}
