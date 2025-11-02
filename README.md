@@ -1,5 +1,23 @@
 Event Finder is a webapp which integrates messaging into the event discovery and creation theme.
 
+steps:
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cd project
+python manage.py makemigrations
+python manage.py migrate
+docker rm -f redis 2>/dev/null || true
+docker run -p 6379:6379 --name redis -d redis:7
+docker exec -it redis redis-cli PING
+export DJANGO_SETTINGS_MODULE=event_finder.settings
+uvicorn event_finder.asgi:application --reload --host 0.0.0.0 --port 8000
+
+
+
+
+
+
 ### Create & activate virtual env
 python -m venv .venv
 .venv\Scripts\activate # Windows
