@@ -74,3 +74,34 @@ docker exec -it redis redis-cli PING   # should return PONG
 - Keep Redis running while testing Channels.
 - Remove background processes with pkill if ports appear occupied.
 
+### kill all
+# stop runserver, uvicorn, daphne and any stray python manage.py runserver
+pkill -f "manage.py runserver" 2>/dev/null || true
+pkill -f "uvicorn.*event_finder.asgi" 2>/dev/null || true
+pkill -f "daphne.*event_finder.asgi" 2>/dev/null || true
+
+# verify none are running
+ps aux | egrep "(runserver|uvicorn|daphne)" | egrep -v "egrep" || true
+
+# stop & remove container named "redis"
+docker stop redis 2>/dev/null || true
+docker rm -f redis 2>/dev/null || true
+
+# verify no redis on port 6379
+ss -ltnp | grep 6379 || true
+
+# show what's listening
+ss -ltnp | egrep ":8000|:6379" || true
+
+# if you find a PID and need to force-kill:
+# sudo kill -9 <PID>
+
+deactivate 2>/dev/null || true
+exit
+
+# no python/asgi servers
+ps aux | egrep "(runserver|uvicorn|daphne|python)" | egrep -v "egrep" || true
+
+# no redis listening
+ss -ltnp | grep 6379 || true
+
