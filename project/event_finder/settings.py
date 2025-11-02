@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,15 +26,24 @@ SECRET_KEY = 'django-insecure-wulg1&8k)*qy91drl($1_0i9zp9*$o_=fbxx+*hjjd7t%&feh)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://0.0.0.0:8000",
+]
 
 ASGI_APPLICATION = "event_finder.asgi.application"
+
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND":
         "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
+        "CONFIG": {
+            "hosts": [os.environ.get("REDIS_URL", "redis://localhost:6379")],
+            },
     }
 }
 
@@ -51,6 +61,7 @@ INSTALLED_APPS = [
     "events",
     "users",
     "chat",
+    "channels",
 ]
 
 MIDDLEWARE = [
@@ -144,3 +155,6 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
 LOGIN_URL = 'home'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

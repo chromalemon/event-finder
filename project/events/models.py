@@ -52,7 +52,7 @@ class EventAttendee(models.Model):
     status = models.CharField(max_length=20, choices=[('going', 'Going'), ('waitlist', 'Waitlisted'), ('not_going', 'Not Going')], default='waitlist')
 
     class Meta:
-        unique_together = ('event_id', 'user_id')
+        unique_together = ('event', 'user')
         verbose_name_plural = 'Event Attendees'
 
     def __str__(self):

@@ -1,0 +1,7 @@
+{% extends "event_finder/base.html" %}
+{% block title %}Chat Access Restricted{% endblock %}
+{% block content %}
+<h1>Access Restricted</h1>
+<p>You are not permitted to join the chat for "<strong>{{ event.title }}</strong>". Only the event host or attendees (status "going") can access this room.</p>
+<p><a href="{% url 'events:view_event' event.pk %}">Back to event</a></p>
+{% endblock %}

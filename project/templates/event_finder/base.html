@@ -14,9 +14,9 @@
             <a href="{% url 'dashboard' %}">Home</a> |
             <a href="{% url 'profile' %}">Your Profile</a> |
             <a href="{% url 'profile_search' %}">Search Profiles</a> |
-            <a href="{% url 'create_event' %}">Create Event</a> |
-            <a href="{% url 'view_events' %}">Discover Events</a> |
-            <a href="{% url 'chat' %}">Chats</a> |
+            <a href="{% url 'events:create_event' %}">Create Event</a> |
+            <a href="{% url 'events:view_events' %}">Discover Events</a> |
+            <a href="{% url 'chat:index' %}">Chats</a> |
             <a href="{% url 'logout' %}">Logout</a>
         </nav>
     </header>

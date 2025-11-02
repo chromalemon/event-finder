@@ -38,13 +38,13 @@
     </div>
 
     <button type="submit" class="btn-submit">Search/Filter</button>
-    <a href="{% url 'view_events' %}" class="btn-clear">Clear Filters</a>
+    <a href="{% url 'events:view_events' %}" class="btn-clear">Clear Filters</a>
 </form>
 {% if events %}
     <div class="events-container">
     {% for event in events %}
         <div class="event-card">
-            <h3><a href="{% url 'view_event' event.id %}">{{ event.title }}</a></h3>
+            <h3><a href="{% url 'events:view_event' event.id %}">{{ event.title }}</a></h3>
             <p><strong>Date:</strong> {{ event.start_time|date:"M d, Y H:i" }}</p>
             <p><strong>Location:</strong> {{ event.location.formatted_address }}</p>
             <p><strong>Hosted by:</strong> {{ event.host.username }}</p>

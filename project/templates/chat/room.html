@@ -1,0 +1,99 @@
+{% extends "event_finder/base.html" %}
+{% load static %}
+{% block title %}Chat — {{ event.title }}{% endblock %}
+
+{% block content %}
+<h1>Chat: {{ event.title }}</h1>
+<p><small>Host: {{ event.host.username }} • Starts: {{ event.start_time|date:"M d, Y H:i" }}</small></p>
+
+<div id="chat-container" style="max-width:900px;">
+  <div id="chat-status" style="margin-bottom:8px;color:#444">Connecting...</div>
+  <div id="chat-messages" style="height:360px; overflow:auto; border:1px solid #ddd; padding:8px; margin-bottom:8px;"></div>
+
+  <form id="chat-form">
+    <input id="chat-input" name="message" autocomplete="off" placeholder="Write a message..." style="width:80%;" />
+    <button id="chat-send" type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+(function(){
+  const eventId = "{{ event.pk }}";
+  const statusEl = document.getElementById("chat-status");
+  const messagesEl = document.getElementById("chat-messages");
+  const form = document.getElementById("chat-form");
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("chat-send");
+
+  function appendMessage(username, text, timestamp){
+    const el = document.createElement("div");
+    el.style.padding = "6px 0";
+    const when = timestamp ? (" <small style='color:#666'>"+timestamp+"</small>") : "";
+    el.innerHTML = "<strong>" + (username || "anon") + ":</strong> " + (text || "") + when;
+    messagesEl.appendChild(el);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function setStatus(s, color){
+    statusEl.textContent = s;
+    statusEl.style.color = color || "#444";
+  }
+
+  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const socketUrl = wsScheme + "://" + window.location.host + "/ws/chat/event/" + eventId + "/";
+  let socket;
+  try {
+    socket = new WebSocket(socketUrl);
+  } catch (err) {
+    console.error("WebSocket ctor error", err);
+    setStatus("WebSocket constructor failed: " + err.message, "red");
+    sendBtn.disabled = true;
+    return;
+  }
+
+  socket.onopen = function(){ 
+    console.info("WebSocket OPEN");
+    setStatus("Connected", "green");
+    sendBtn.disabled = false;
+  };
+  socket.onerror = function(err){
+    console.error("WebSocket ERROR", err);
+    setStatus("WebSocket error (see console)", "red");
+  };
+  socket.onclose = function(ev){
+    console.warn("WebSocket CLOSED", ev);
+    setStatus("Disconnected", "orange");
+    sendBtn.disabled = true;
+  };
+
+  socket.onmessage = function(e){
+    try {
+      const data = JSON.parse(e.data);
+      if(data.type === "history" && Array.isArray(data.messages)){
+        data.messages.forEach(m => appendMessage(m.username, m.message, m.timestamp));
+        return;
+      }
+      if(data.type === "message" || data.type === "chat.message"){
+        appendMessage(data.username, data.message, data.timestamp || data.created_at);
+      }
+    } catch (err) { 
+      console.error("chat parse error", err, "payload:", e.data);
+    }
+  };
+
+  form.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    const text = input.value.trim();
+    if(!text) return;
+    if(!socket || socket.readyState !== WebSocket.OPEN){
+      console.warn("Socket not open. state=", socket ? socket.readyState : "no-socket");
+      setStatus("Can't send: socket not open", "red");
+      return;
+    }
+    const payload = JSON.stringify({message: text});
+    socket.send(payload);
+    input.value = "";
+  });
+})();
+</script>
+{% endblock %}

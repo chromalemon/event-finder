@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.contrib.auth import login as auth_login, logout as auth_logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from users.forms import CustomUserRegisterForm, CustomUserLoginForm, CustomUserProfileSearchForm
+from .forms import UserProfileEditForm
 
 # Create your views here.
 
@@ -77,8 +78,12 @@ def profile_search(request):
 @login_required
 def profile_edit(request):
     if request.method == "POST":
-        pass
+        form = UserProfileEditForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated.")
+            return redirect('profile')
     else:
-        return HttpResponse("placeholder for profile edit page")
-        #form = ProfileEditForm()
+        form = UserProfileEditForm(instance=request.user)
+    return render(request, "users/edit_profile.html", {"form": form})
 

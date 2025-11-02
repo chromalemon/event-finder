@@ -1,0 +1,40 @@
+{% extends "event_finder/base.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<h1>Edit your profile</h1>
+
+<form method="post" enctype="multipart/form-data" class="profile-form">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <div class="form-row{% if field.errors %} has-error{% endif %}">
+      {{ field.label_tag }}
+      {{ field }}
+      {% if field.help_text %}
+        <small class="help-text">{{ field.help_text }}</small>
+      {% endif %}
+      {{ field.errors }}
+    </div>
+  {% endfor %}
+
+  <div class="form-actions" style="margin-top:1rem;">
+    <button type="submit" class="btn-save">Save changes</button>
+    <a href="{% url 'profile' %}" class="btn-cancel" style="margin-left:0.5rem;">Cancel</a>
+  </div>
+</form>
+
+{% if user.profile_image %}
+  <div class="current-avatar" style="margin-top:1rem;">
+    <h3>Current avatar</h3>
+    <img src="{{ user.profile_image.url }}" alt="{{ user.username }} avatar" style="max-width:200px;max-height:200px;border-radius:6px;">
+  </div>
+{% else %}
+  <div class="current-avatar" style="margin-top:1rem;">
+    <h3>Current avatar</h3>
+    <img src="{% static 'images/default.svg' %}" alt="{{ user.username }} avatar" style="max-width:200px;max-height:200px;border-radius:6px;">
+  </div>
+{% endif %}
+
+{% endblock %}

@@ -10,7 +10,12 @@ class CustomUser(AbstractUser):
     
     email = models.EmailField(unique=True, max_length=255)
     dob = models.DateField(null=True, blank=True)
-    profile_image = models.ImageField(upload_to='profile_images/', default='default.jpg', null=True, blank=True)
+    profile_image = models.ImageField(
+        upload_to='avatars/',
+        null=True,
+        blank=True,
+        default='avatars/default.svg'  # new default path relative to MEDIA_ROOT
+    )
     verified = models.BooleanField(default=False)
 
     

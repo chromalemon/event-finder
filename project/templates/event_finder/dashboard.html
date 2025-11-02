@@ -9,25 +9,40 @@
     <h2>Quick Links</h2>
     <ul>
         <li><a href="{% url 'profile' %}">Your Profile</a></li>
-        <li><a href="{% url 'create_event' %}">Create a New Event</a></li>
-        <li><a href="{% url 'view_events' %}">Discover Events</a></li>
+        <li><a href="{% url 'events:create_event' %}">Create a New Event</a></li>
+        <li><a href="{% url 'events:view_events' %}">Discover Events</a></li>
         <li><a href="{% url 'logout' %}">Logout</a></li>
     </ul>
 </section>
 
 <section class="upcoming-events">
-    <h2>Joined Events</h2>
-    {% if joined_events %}
+    <h2>Hosted Events</h2>
+    {% if hosted_events %}
         <ul>
-            {% for event in joined_events %}
+            {% for event in hosted_events %}
                 <li>
-                    <a href="{% url 'view_event' event.id %}">{{ event.title }}</a>
+                    <a href="{% url 'events:view_event' event.id %}">{{ event.title }}</a>
                     on {{ event.start_time|date:"D, M j, Y @ H:i" }}
                 </li>
             {% endfor %}
         </ul>
     {% else %}
-        <p>You haven't joined any events yet. <a href="{% url 'view_events' %}">Discover events</a>.</p>
+        <p>You are not hosting any events. <a href="{% url 'events:create_event' %}">Create an event</a> to get started.</p>
+    {% endif %}
+
+
+    <h2>Joined Events</h2>
+    {% if joined_events %}
+        <ul>
+            {% for event in joined_events %}
+                <li>
+                    <a href="{% url 'events:view_event' event.id %}">{{ event.title }}</a>
+                    on {{ event.start_time|date:"D, M j, Y @ H:i" }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You haven't joined any events yet. <a href="{% url 'events:view_events' %}">Discover events</a>.</p>
     {% endif %}
 </section>
 {% endblock %}

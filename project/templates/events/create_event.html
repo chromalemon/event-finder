@@ -4,43 +4,36 @@
 {% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>{% endblock %}
 
 {% block content %}
+<h1>{% if context == "edit" %}Edit Event{% else %}Create Event{% endif %}</h1>
 
-{% if context == "create" %}
-<h1>Create Event</h1>
-{% else %}
-<h1>Editing Event "{{ event.title }}"</h1>
-{% endif %}
-    <form method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
-      {{ form.non_field_errors }}
-      {{ form.errors }}
-      {{ form.title.label_tag }} {{ form.title }}<br />
-      {{ form.description.label_tag }} {{ form.description }}<br />
-      {{ form.start_time.label_tag }} {{ form.start_time }}<br />
-      {{ form.end_time.label_tag }} {{ form.end_time }}<br />
-      {{ form.categories.label_tag }} {{ form.categories }}<br />
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {{ form.errors }}
 
-      <label for="id_formatted_address">Location Name:</label>
+  {{ form.title.label_tag }} {{ form.title }}<br/>
+  {{ form.description.label_tag }} {{ form.description }}<br/>
+  {{ form.start_time.label_tag }} {{ form.start_time }}<br/>
+  {{ form.end_time.label_tag }} {{ form.end_time }}<br/>
+  {{ form.categories.label_tag }} {{ form.categories }}<br/>
 
-      <input type="hidden" id="id_formatted_address" name="formatted_address"/>
-      <input type="text" id="id_search" name="search"/>
-      <input type="hidden" id="id_lat" name="lat" />
-      <input type="hidden" id="id_long" name="long" />
+  <!-- Hidden location fields (names must match form fields) -->
+  <input type="hidden" id="id_formatted_address" name="formatted_address" value="{{ form.initial.formatted_address|default:'' }}">
+  <input type="text" id="id_search" name="search" value="{{ form.initial.formatted_address|default:'' }}" placeholder="Location name (search)"/>
+  <input type="hidden" id="id_lat" name="lat" value="{{ form.initial.lat|default:'' }}">
+  <input type="hidden" id="id_long" name="long" value="{{ form.initial.long|default:'' }}">
+  <input type="hidden" id="id_city" name="city" value="{{ form.initial.city|default:'' }}">
+  <input type="hidden" id="id_country" name="country" value="{{ form.initial.country|default:'' }}">
+  <input type="hidden" id="id_postcode" name="postcode" value="{{ form.initial.postcode|default:'' }}">
 
+  <button type="submit">{% if context == "edit" %}Save Changes{% else %}Create Event{% endif %}</button>
+</form>
 
-      {% if context == "create" %}
-      <br><button type="submit">Create Event</button>
-      {% else %}
-      <br><button type="submit">Save Changes</button>
-      {% endif %}
-    </form>
+<div id="map" style="height:400px;"></div>
+<!-- Leaflet + your JS should update the hidden inputs -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <div id="map" style="height: 400px; width: 100%; margin-top: 20px"></div>
-
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <script>
+<script>
   const $ = (id) => document.getElementById(id);
 
   // prefer the real search field id

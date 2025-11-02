@@ -13,15 +13,21 @@ def home(request):
 @login_required
 def dashboard(request):
     # only consider attendees with status "going"
+    hosted_events = Event.objects.filter(
+        host=request.user,
+        start_time__gte=now()
+    ).order_by('start_time')
+
     joined_events = (
         Event.objects.filter(
-            attendees__user_id=request.user.pk,
+            attendees__user=request.user,
             attendees__status='going',
             start_time__gte=now()
         )
+        .exclude(host=request.user)
         .order_by('start_time')
         .distinct()
     )
     if not joined_events.exists():
         messages.info(request, "You haven't joined any events yet. Explore and join some!")
-    return render(request, 'event_finder/dashboard.html', {'joined_events': joined_events})
+    return render(request, 'event_finder/dashboard.html', {'joined_events': joined_events, "hosted_events": hosted_events})

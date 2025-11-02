@@ -1,27 +1,33 @@
-{% extends 'event_finder/base.html' %}
-
-{% block title %}Chats{% endblock %}
+{% extends "event_finder/base.html" %}
+{% block title %}Group Chats{% endblock %}
 
 {% block content %}
-<h1>Chat Home</h1>
-<p>Welcome to the chat section! Here you can manage your chats.</p>
-<p>Currently, this is a placeholder page. You can implement chat functionality here.</p>
-<p>For now, you can return to the <a href="{% url 'view_events' %}">events page</a> or <a href="{% url 'dashboard' %}">dashboard</a>.</p>
-<style>
-    h1 {
-        font-size: 2em;
-        margin: 20px 0;
-    }
-    p {
-        font-size: 1.2em;
-        margin: 10px 0;
-    }
-    a {
-        color: #007bff;
-        text-decoration: none;
-    }
-    a:hover {
-        text-decoration: underline;
-    }
-</style>
+<h1>Group Chats</h1>
+<p>Open the chat rooms for events you are participating in (host or attendee with status "going").</p>
+
+{% if not user.is_authenticated %}
+  <p>Please <a href="{% url 'login' %}?next={% url 'chat:index' %}">log in</a> to see your event chats.</p>
+{% else %}
+  {% if events %}
+    <ul class="chat-list">
+      {% for event in events %}
+        <li style="margin-bottom:1rem;">
+          <strong><a href="{% url 'events:view_event' event.id %}">{{ event.title }}</a></strong>
+          <div>
+            <small>
+              Host: {{ event.host.username }} |
+              Starts: {{ event.start_time|date:"M d, Y H:i" }} |
+              Location: {{ event.location.formatted_address|default:"(no location)" }}
+            </small>
+          </div>
+          <div style="margin-top:6px;">
+            <a class="btn" href="{% url 'chat:room' event.pk %}">Open Chat</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You are not currently an attendee of any event chats.</p>
+  {% endif %}
+{% endif %}
 {% endblock %}

@@ -11,5 +11,8 @@ class ChatMessage(models.Model):
     content = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ["sent_at"]
+
     def __str__(self):
-        return f"Message from {self.user_id.username} in chat {self.id}"
+        return f"Msg #{self.pk} on event {self.event_id} by user {self.user_id}"

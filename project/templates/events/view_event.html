@@ -14,7 +14,40 @@
             {% empty %}
                 No categories
             {% endfor %}</p>
-        <p class="detail"><strong>Attendees:</strong>
+
+        {# Attendees: host sees management UI, others see simple list #}
+        <p class="detail"><strong>Attendees:</strong></p>
+        {% if user == event.host %}
+            {% if attendees_for_host %}
+                <ul>
+                    {% for att in attendees_for_host %}
+                        <li style="margin-bottom:.5rem;">
+                            <a href="{% url 'profile' att.user.pk %}">{{ att.user.username }}</a>
+                            {% if att.created_at %} — Joined: {{ att.created_at|date:"M d, Y H:i" }}{% endif %}
+                            <form method="POST" action="{% url 'events:change_attendee_status' event.pk %}" style="display:inline-block;margin-left:8px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="attendee_id" value="{{ att.pk }}" />
+                                <select name="status" aria-label="Status for {{ att.user.username }}">
+                                    <option value="going" {% if att.status == "going" %}selected{% endif %}>Going</option>
+                                    <option value="waitlist" {% if att.status == "waitlist" %}selected{% endif %}>Waitlist</option>
+                                    <option value="not_going" {% if att.status == "not_going" %}selected{% endif %}>Not going</option>
+                                </select>
+                                <button type="submit" class="btn-small">Update</button>
+                            </form>
+
+                            <form method="POST" action="{% url 'events:change_attendee_status' event.pk %}" style="display:inline-block;margin-left:6px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="attendee_id" value="{{ att.pk }}" />
+                                <input type="hidden" name="action" value="remove" />
+                                <button type="submit" class="btn-small btn-leave">Remove</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No attendees yet.</p>
+            {% endif %}
+        {% else %}
             {% if event.attendees.count > 0 %}
                 <ul>
                     {% for attendee in event.attendees.all %}
@@ -22,38 +55,57 @@
                     {% endfor %}
                 </ul>
             {% else %}
-                No attendees yet.
-            {% endif %}</p>
+                <p>No attendees yet.</p>
+            {% endif %}
+        {% endif %}
+
+        {# Waitlist shown only to host, limited to 5 and ordered by join date #}
+        {% if user == event.host  %}
+            <a href="{% url 'events:edit_event' event.id %}" class="btn-edit">Edit event</a>
+            {% if waitlisted_users %}
+                <p class="detail"><strong>Waitlist (up to 5 oldest):</strong></p>
+                <ul>
+                    {% for wa in waitlisted_users %}
+                        <li>
+                            <a href="{% url 'profile' wa.user.pk %}">{{ wa.user.username }}</a>
+                            {% if wa.created_at %}
+                                — Joined: {{ wa.created_at|date:"M d, Y H:i" }}
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endif %}
     </div>
 
-    {% if user.is_authenticated %}
-        {% if user_attendee %}
-            {% if user_attendee.status != "not_going" %}
-                <form method="POST" action="{% url 'leave_event' event.pk %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-join btn-leave">Leave Event</button>
-                </form>
-            {% else %}
-                <form method="POST" action="{% url 'join_event' event.pk %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-join">Join Event</button>
-                </form>
-            {% endif %}
+{% if user.is_authenticated %}
+    {% if user_attendee %}
+        {% if user_attendee.status != "not_going" %}
+            <form method="POST" action="{% url 'events:leave_event' event.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-join btn-leave">Leave Event</button>
+            </form>
+            <!-- Open chat if user is attending -->
+            <a class="btn-chat" href="{% url 'chat:room' event.pk %}">Open Event Chat</a>
         {% else %}
-            <form method="POST" action="{% url 'join_event' event.pk %}">
+            <form method="POST" action="{% url 'events:join_event' event.pk %}">
                 {% csrf_token %}
                 <button type="submit" class="btn-join">Join Event</button>
             </form>
         {% endif %}
     {% else %}
-        <a href="{% url 'login' %}?next={% url 'view_event' event.pk %}" class="btn-join">Log in to join</a>
+        <form method="POST" action="{% url 'events:join_event' event.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-join">Join Event</button>
+        </form>
     {% endif %}
+{% else %}
+    <a href="{% url 'login' %}?next={% url 'events:view_event' event.pk %}" class="btn-join">Log in to join</a>
+    <br/>
+    <a href="{% url 'login' %}?next={% url 'chat:room' event.pk %}" class="btn-chat">Log in to open chat</a>
+{% endif %}
 
-    {% if user == event.host %}
-        <a href="{% url 'edit_event' event.id %}" class="btn-edit">Edit event</a>
-    {% endif %}
-
-    <a href="{% url 'view_events' %}" class="btn-back">Back to events</a>
+    <a href="{% url 'events:view_events' %}" class="btn-back">Back to events</a>
 
 
 <style>

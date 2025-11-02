@@ -14,12 +14,21 @@
     <p>This user has not set up a bio yet.</p>
 {% endif %}
 
+
+
+{% load static %}
 {% if user.profile_image %}
-    <h2>Profile Picture</h2>
-    <img src="{{ user.profile_image }}" alt="{{ user.username }}'s Profile Picture" style="max-width: 400px; max-height: 400px;">
+  <div class="current-avatar" style="margin-top:1rem;">
+    <h3>Current avatar</h3>
+    <img src="{{ user.profile_image.url }}" alt="{{ user.username }} avatar" style="max-width:200px;max-height:200px;border-radius:6px;">
+  </div>
 {% else %}
-    <p>No profile picture available.</p>
+  <div class="current-avatar" style="margin-top:1rem;">
+    <h3>Current avatar</h3>
+    <img src="{% static 'images/default.svg' %}" alt="{{ user.username }} avatar" style="max-width:200px;max-height:200px;border-radius:6px;">
+  </div>
 {% endif %}
+
 
 {% if own %}
     <br /><a href="{% url 'profile_edit' %}">Edit Profile</a>

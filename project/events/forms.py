@@ -18,13 +18,13 @@ class EventCreationForm(forms.ModelForm):
 
     class Meta:
         model = Event
-        fields = ['title', 'description', 'start_time', 'end_time', 'location']
+        # manage Location via hidden inputs, not the FK widget
+        fields = ['title', 'description', 'start_time', 'end_time']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Event Title'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Event Description'}),
             'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             "end_time": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
-            'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Event Location'}),
         }
 
     def clean(self):
@@ -38,8 +38,15 @@ class EventCreationForm(forms.ModelForm):
         return cleaned
 
     def save(self, commit=True, host=None):
-        # create/update Event instance, create Location if address provided,
-        # attach host and create category relationships
+        """
+        On create:
+          - create Location if provided and attach it
+          - create Event, categories, and EventAttendee(host -> going)
+
+        On update (instance with pk):
+          - update existing Location if present, else create
+          - update Event fields, replace category relations
+        """
         event = super().save(commit=False)
         if host:
             event.host = host
@@ -48,21 +55,34 @@ class EventCreationForm(forms.ModelForm):
         lat = self.cleaned_data.get('lat')
         long = self.cleaned_data.get('long')
 
+        # handle Location: update existing or create new
         if addr and lat is not None and long is not None:
-            loc = Location.objects.create(
-                formatted_address=addr,
-                city=self.cleaned_data.get('city') or None,
-                country=self.cleaned_data.get('country') or None,
-                postcode=self.cleaned_data.get('postcode') or None,
-                lat=lat,
-                long=long,
-            )
-            event.location = loc
+            if getattr(event, "location", None):
+                loc = event.location
+                loc.formatted_address = addr
+                loc.lat = lat
+                loc.long = long
+                loc.city = self.cleaned_data.get('city') or None
+                loc.country = self.cleaned_data.get('country') or None
+                loc.postcode = self.cleaned_data.get('postcode') or None
+                loc.save()
+                event.location = loc
+            else:
+                loc = Location.objects.create(
+                    formatted_address=addr,
+                    city=self.cleaned_data.get('city') or None,
+                    country=self.cleaned_data.get('country') or None,
+                    postcode=self.cleaned_data.get('postcode') or None,
+                    lat=lat,
+                    long=long,
+                )
+                event.location = loc
+        # if no address provided and event had an existing location, we leave it unchanged
 
         if commit:
             event.save()
 
-            # ensure the host is added as an attendee
+            # ensure the host is added as an attendee (idempotent)
             if host:
                 EventAttendee.objects.get_or_create(
                     event=event,
@@ -70,7 +90,92 @@ class EventCreationForm(forms.ModelForm):
                     defaults={'status': 'going'}
                 )
 
-            # categories: create Category and EventCategory relations
+            # categories: replace existing relations on edit to avoid duplicates
+            EventCategory.objects.filter(event=event).delete()
+            cats = self.cleaned_data.get('categories') or ""
+            for name in [c.strip() for c in cats.split(',') if c.strip()]:
+                category, _ = Category.objects.get_or_create(name=name)
+                EventCategory.objects.get_or_create(cat=category, event=event)
+        return event
+
+# New: separate form class for editing events
+class EventEditForm(forms.ModelForm):
+    """
+    Form dedicated to editing an existing Event.
+    Behaves like EventCreationForm for fields/location/categories,
+    but intentionally does NOT assign or modify the event host or create host attendee.
+    """
+    categories = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Categories (comma-separated)'}),
+    )
+
+    formatted_address = forms.CharField(required=False, widget=forms.HiddenInput())
+    lat = forms.FloatField(required=False, widget=forms.HiddenInput())
+    long = forms.FloatField(required=False, widget=forms.HiddenInput())
+    city = forms.CharField(required=False, widget=forms.HiddenInput())
+    country = forms.CharField(required=False, widget=forms.HiddenInput())
+    postcode = forms.CharField(required=False, widget=forms.HiddenInput())
+
+    class Meta:
+        model = Event
+        fields = ['title', 'description', 'start_time', 'end_time']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Event Title'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Event Description'}),
+            'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        start_time = cleaned.get('start_time')
+        end_time = cleaned.get('end_time')
+        if start_time and start_time < timezone.now():
+            self.add_error('start_time', "Start time cannot be in the past.")
+        if start_time and end_time and start_time >= end_time:
+            self.add_error('end_time', "End time must be after start time.")
+        return cleaned
+
+    def save(self, commit=True):
+        """
+        Save edits to the event instance. Do not touch host or create host attendee.
+        Update or create Location, and replace category relations.
+        """
+        event = super().save(commit=False)
+
+        addr = self.cleaned_data.get('formatted_address') or None
+        lat = self.cleaned_data.get('lat')
+        long = self.cleaned_data.get('long')
+
+        if addr and lat is not None and long is not None:
+            # update existing location or create new
+            if getattr(event, "location", None):
+                loc = event.location
+                loc.formatted_address = addr
+                loc.lat = lat
+                loc.long = long
+                loc.city = self.cleaned_data.get('city') or None
+                loc.country = self.cleaned_data.get('country') or None
+                loc.postcode = self.cleaned_data.get('postcode') or None
+                loc.save()
+                event.location = loc
+            else:
+                loc = Location.objects.create(
+                    formatted_address=addr,
+                    city=self.cleaned_data.get('city') or None,
+                    country=self.cleaned_data.get('country') or None,
+                    postcode=self.cleaned_data.get('postcode') or None,
+                    lat=lat,
+                    long=long,
+                )
+                event.location = loc
+
+        if commit:
+            event.save()
+
+            # replace categories
+            EventCategory.objects.filter(event=event).delete()
             cats = self.cleaned_data.get('categories') or ""
             for name in [c.strip() for c in cats.split(',') if c.strip()]:
                 category, _ = Category.objects.get_or_create(name=name)
