@@ -46,6 +46,9 @@ class Category(models.Model):
         verbose_name_plural = 'Categories'
 
 class EventAttendee(models.Model):
+    '''
+    Model to track attendees of an event.
+    '''
     event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name='attendees')
     user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE, related_name='attended_events')
     joined_at = models.DateTimeField(auto_now_add=True)

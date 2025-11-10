@@ -11,12 +11,6 @@ from .forms import UserProfileEditForm
 
 User = get_user_model()
 
-def empty(request):
-    if request.user.is_authenticated:
-        return redirect("dashboard")
-    return redirect("login")
-
-
 def register(request):
     if request.user.is_authenticated:
         return redirect("dashboard")
