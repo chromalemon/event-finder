@@ -102,8 +102,10 @@ def view_event(request, event_id):
     # waitlisted users for host (kept as before)
     waitlisted_users = []
     attendees_for_host = []
-    if request.user.is_authenticated and request.user == event.host:
+    if request.user.is_authenticated:
         user_attendee = EventAttendee.objects.filter(event=event, user=request.user).first()
+        
+    if request.user == event.host:
         qs = EventAttendee.objects.filter(event=event, status="waitlist").select_related("user")
         # order by join timestamp if available, otherwise fallback to pk
         try:
@@ -115,7 +117,6 @@ def view_event(request, event_id):
         attendees_for_host = (
             EventAttendee.objects.filter(event=event).select_related("user").order_by("joined_at")
         )
-
 
     return render(request, "events/view_event.html", {
         "event": event,
