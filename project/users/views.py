@@ -29,7 +29,6 @@ def login(request):
     if request.user.is_authenticated:
         return redirect("dashboard")
     if request.method == "POST":
-        
         form = CustomUserLoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
