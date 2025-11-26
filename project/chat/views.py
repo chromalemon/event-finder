@@ -17,7 +17,7 @@ def index(request):
         events = Event.objects.none()
     else:
         events = (
-            Event.objects.filter(
+            Event.objects.filter( # Q object allows for boolean logic in queries
                 Q(host=user) | Q(attendees__user=user, attendees__status="going")
             )
             .select_related("host", "location")
@@ -26,7 +26,6 @@ def index(request):
         )
 
     return render(request, "chat/home.html", {"events": events})
-
 
 @login_required
 def chat_room(request, event_id):

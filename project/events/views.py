@@ -19,7 +19,7 @@ from django.http import HttpResponseForbidden
 def create_event(request):
     if request.method == "POST":
         form = EventCreationForm(request.POST, request.FILES)
-        if form.is_valid():
+        if form.is_valid(): # add event to database
             event = form.save(commit=True, host=request.user)
             messages.success(request, "Event created.")
             return redirect('events:view_event', event_id=event.pk)
@@ -27,10 +27,12 @@ def create_event(request):
         form = EventCreationForm()
     return render(request, "events/create_event.html", {"form": form, "context": "create"})
 
-
 def view_events(request):
+    # fetch all events initially
     events = Event.objects.select_related("location", "host").prefetch_related("event_categories__cat").all()
-    query = request.GET.get('q', '')
+
+    # fetch filter/sort params and apply them
+    query = request.GET.get('q', '') 
     city_filter = request.GET.get('city', '')
     country_filter = request.GET.get('country', '') 
     category_filters = request.GET.getlist('category')
@@ -38,16 +40,12 @@ def view_events(request):
     end_date = request.GET.get('end_date', '')
     sort_order = request.GET.get('sort', 'date_asc')
 
-
     if query:
         events = events.filter(title__icontains=query)
-
     if city_filter:
         events = events.filter(location__city__icontains=city_filter)
-    
     if country_filter:
         events = events.filter(location__country__icontains=country_filter)
-    
     if category_filters:
         events = events.filter(event_categories__cat__name__in=category_filters).distinct()
     if start_date:
@@ -88,23 +86,17 @@ def view_events(request):
         "page_obj": paginator.get_page(page_number),
     })
 
-
 def view_event(request, event_id):
-    """
-    Render event detail. If the current user is the event host, include a full
-    attendee list (with related user) so the host can manage statuses.
-    """
     event = get_object_or_404(Event.objects.select_related("host", "location"), pk=event_id)
 
     # visitor attendee record (if any)
     user_attendee = None
+    if request.user.is_authenticated:
+        user_attendee = EventAttendee.objects.filter(event=event, user=request.user).first()
 
     # waitlisted users for host (kept as before)
     waitlisted_users = []
     attendees_for_host = []
-    if request.user.is_authenticated:
-        user_attendee = EventAttendee.objects.filter(event=event, user=request.user).first()
-        
     if request.user == event.host:
         qs = EventAttendee.objects.filter(event=event, status="waitlist").select_related("user")
         # order by join timestamp if available, otherwise fallback to pk
@@ -124,7 +116,6 @@ def view_event(request, event_id):
         "waitlisted_users": waitlisted_users,
         "attendees_for_host": attendees_for_host,
     })
-
 
 @require_POST
 @login_required
@@ -148,7 +139,7 @@ def change_attendee_status(request, event_id):
     attendee = get_object_or_404(EventAttendee, pk=attendee_id, event=event)
 
     action = request.POST.get("action") or request.POST.get("status")  # support simple forms
-    if action == "remove":
+    if action == "remove": # remove attendee record
         attendee.delete()
         messages.success(request, f"Removed {attendee.user.username} from the event.")
         return redirect("events:view_event", event_id=event.pk)
@@ -188,7 +179,7 @@ def join_event(request, event_id):
             return redirect('events:view_event', event_id=event_id)
         # status == 'not_going' should fall through and attempt to join
 
-    with transaction.atomic():
+    with transaction.atomic(): # ensure atomic update to avoid race conditions
         locked_event = Event.objects.select_for_update().get(pk=event.pk)
         going_count = EventAttendee.objects.filter(event=locked_event, status='going').count()
         capacity = getattr(locked_event, 'capacity', None)
@@ -229,13 +220,13 @@ def leave_event(request, event_id):
         messages.info(request, "You are not listed as attending; marked as not going.")
         return redirect('events:view_event', event_id=event_id)
 
-    # Do not delete record — set status to not_going
+    # Do not delete record, instead set status to not_going
     attendee.status = 'not_going'
     attendee.save()
     messages.success(request, "You have left the event.")
     return redirect('events:view_event', event_id=event_id)
 
-def haversine(lat1, lon1, lat2, lon2):
+def haversine(lat1, lon1, lat2, lon2): # helper function to calculate distance between two lat/long points
     R = 6371
     dlat = radians(lat2 - lat1)
     dlon = radians(lon2 - lon1)

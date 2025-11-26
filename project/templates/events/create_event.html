@@ -36,8 +36,7 @@
 <script>
   const $ = (id) => document.getElementById(id);
 
-  // prefer the real search field id
-  const searchInput = $("id_search") || $("id_name");
+  const searchInput = $("id_search")
 
   const map = L.map("map").setView([51.5074, -0.1278], 13);
 
@@ -107,7 +106,7 @@
       });
 
       // optionally populate more precise address via reverse lookup
-      reverseGeocode(lat, lon).catch(() => {});
+      reverseGeocode(lat, lon).catch(() => {}); 
     }
   }
 
@@ -115,9 +114,9 @@
     const { lat, lng } = e.latlng;
     setCoords(lat, lng);
     if (searchInput) searchInput.value = "Loading address...";
-    // do not clear the input after success — setAddressFields will populate it
-    reverseGeocode(lat, lng)
-      .catch(() => { if (searchInput) searchInput.value = ""; });
+    // do not clear the input after success - setAddressFields will populate it
+    reverseGeocode(lat, lng) 
+      .catch(() => { if (searchInput) searchInput.value = ""; }); 
   });
 
   if (searchInput) {
