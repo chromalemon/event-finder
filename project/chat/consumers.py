@@ -108,7 +108,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
 
         msg = ChatMessage.objects.create(**kwargs)
 
-        meta = {"id": getattr(msg, "pk", None)}F
+        meta = {"id": getattr(msg, "pk", None)}
 
         val = getattr(msg, "sent_at")
         meta["timestamp"] = val.isoformat() if val else None
@@ -133,21 +133,11 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         qs = qs.order_by("-pk")[:limit]
         out = []
         for m in reversed(list(qs)):
-            username = "anon"
-            for uname_field in ("user", "sender", "author"):
-                if hasattr(m, uname_field) and getattr(m, uname_field) is not None:
-                    u = getattr(m, uname_field)
-                    username = getattr(u, "username", str(u))
-                    break
-
+            u = getattr(m, "user", "anon")
+            username = getattr(u, "username", str(u))
             content = getattr(m, "content")
-
-            ts = None
-            for ts_name in ("created_at", "timestamp", "sent_at", "created"):
-                if hasattr(m, ts_name):
-                    val = getattr(m, ts_name)
-                    ts = val.isoformat() if val else None
-                    break
+            val = getattr(m, "sent_at")
+            ts = val.isoformat() if val else None
 
             out.append({"username": username, "message": content, "timestamp": ts, "id": getattr(m, "pk", None)})
         return out
