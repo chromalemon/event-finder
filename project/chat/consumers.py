@@ -10,8 +10,6 @@ class EventChatConsumer(AsyncWebsocketConsumer):
 
     - Avoids importing models at module import time (lazy imports inside DB helpers)
       so ASGI startup doesn't fail with "Apps aren't loaded yet."
-    - Dynamically inspects ChatMessage model fields to match your exact schema
-      (event FK, user FK, content field, timestamp field).
     - Enforces that only event hosts or attendees with status "going" can connect.
     """
     async def connect(self):
@@ -102,91 +100,27 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         from events.models import Event
         from django.contrib.auth import get_user_model
 
-        # Inspect model fields to find the correct field names
-        cm_fields = {f.name: f for f in ChatMessage._meta.get_fields()}
-
-        # find event FK field (related_model == Event)
-        event_field = None
-        for f in ChatMessage._meta.get_fields():
-            if getattr(f, "many_to_one", False) and getattr(f, "related_model", None) is Event:
-                event_field = f.name
-                break
-        if not event_field and "event" in cm_fields:
-            event_field = "event"
-
-        # find user FK field (related_model == AUTH_USER_MODEL)
-        User = get_user_model()
-        user_field = None
-        for f in ChatMessage._meta.get_fields():
-            if getattr(f, "many_to_one", False) and getattr(f, "related_model", None) is User:
-                user_field = f.name
-                break
-        if not user_field:
-            for alt in ("user", "sender", "author"):
-                if alt in cm_fields:
-                    user_field = alt
-                    break
-
-        # find content/text field
-        content_field = None
-        for name, f in cm_fields.items():
-            if getattr(f, "concrete", False) and not getattr(f, "is_relation", False):
-                it = getattr(f, "get_internal_type", lambda: "")()
-                if it in ("TextField", "CharField"):
-                    lname = name.lower()
-                    if lname not in ("created_at", "created", "updated_at", "timestamp", "sent_at"):
-                        content_field = name
-                        break
-        if not content_field:
-            for alt in ("message", "content", "text", "body"):
-                if alt in cm_fields:
-                    content_field = alt
-                    break
-
         # prepare kwargs for create()
-        kwargs = {}
-        if event_field:
-            kwargs[event_field] = Event.objects.get(pk=event_id)
-        else:
-            # fallback to event_id if model uses that
-            if "event_id" in cm_fields:
-                kwargs["event_id"] = event_id
-
-        if user_field:
-            kwargs[user_field] = (user if (user and getattr(user, "is_authenticated", False)) else None)
-
-        if content_field:
-            kwargs[content_field] = message_text
-        else:
-            # last resort
-            kwargs["message"] = message_text
+        kwargs = {}                
+        kwargs["event"] = event_id
+        kwargs["user"] = (user if (user and getattr(user, "is_authenticated", False)) else None)
+        kwargs["content"] = message_text
 
         msg = ChatMessage.objects.create(**kwargs)
 
-        meta = {"id": getattr(msg, "pk", None)}
-        # find timestamp on created message
-        for ts_name in ("created_at", "timestamp", "sent_at", "created"):
-            if hasattr(msg, ts_name):
-                val = getattr(msg, ts_name)
-                meta["timestamp"] = val.isoformat() if val else None
-                break
+        meta = {"id": getattr(msg, "pk", None)}F
+
+        val = getattr(msg, "sent_at")
+        meta["timestamp"] = val.isoformat() if val else None
+        
         return meta
 
     @database_sync_to_async
     def _get_recent_messages(self, event_id, limit=50):
         from .models import ChatMessage
 
-        # Determine how to filter by event
-        fk_names = [f.name for f in ChatMessage._meta.get_fields() if getattr(f, "many_to_one", False)]
         filter_kwargs = {}
-        if "event" in fk_names:
-            filter_kwargs["event_id"] = event_id
-        else:
-            # try common alternatives
-            for alt in ("room", "chat", "conversation"):
-                if alt in fk_names:
-                    filter_kwargs[f"{alt}_id"] = event_id
-                    break
+        filter_kwargs["event_id"] = event_id
 
         try:
             if filter_kwargs:
@@ -206,19 +140,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
                     username = getattr(u, "username", str(u))
                     break
 
-            # find content
-            content = None
-            for content_field in ("message", "content", "text", "body"):
-                if hasattr(m, content_field):
-                    content = getattr(m, content_field)
-                    break
-            if content is None:
-                for f in ChatMessage._meta.get_fields():
-                    if getattr(f, "concrete", False) and not getattr(f, "is_relation", False):
-                        it = getattr(f, "get_internal_type", lambda: "")()
-                        if it in ("TextField", "CharField"):
-                            content = getattr(m, f.name)
-                            break
+            content = getattr(m, "content")
 
             ts = None
             for ts_name in ("created_at", "timestamp", "sent_at", "created"):
