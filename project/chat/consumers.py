@@ -1,7 +1,6 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 import json
-import traceback
 from django.utils import timezone
 
 class EventChatConsumer(AsyncWebsocketConsumer):
@@ -102,8 +101,12 @@ class EventChatConsumer(AsyncWebsocketConsumer):
 
         # prepare kwargs for create()
         kwargs = {}                
-        kwargs["event"] = event_id
-        kwargs["user"] = (user if (user and getattr(user, "is_authenticated", False)) else None)
+        # use the _id fields to avoid passing model instances at runtime
+        # ensure we only save messages from authenticated users
+        if not (user and getattr(user, "is_authenticated", False)):
+            return None
+        kwargs["event_id"] = event_id
+        kwargs["user_id"] = getattr(user, "pk", None)
         kwargs["content"] = message_text
 
         msg = ChatMessage.objects.create(**kwargs)
@@ -119,16 +122,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
     def _get_recent_messages(self, event_id, limit=50):
         from .models import ChatMessage
 
-        filter_kwargs = {}
-        filter_kwargs["event_id"] = event_id
-
-        try:
-            if filter_kwargs:
-                qs = ChatMessage.objects.filter(**filter_kwargs)
-            else:
-                qs = ChatMessage.objects.filter(event_id=event_id)
-        except Exception:
-            qs = ChatMessage.objects.none()
+        qs = ChatMessage.objects.filter(event_id=event_id)
 
         qs = qs.order_by("-pk")[:limit]
         out = []

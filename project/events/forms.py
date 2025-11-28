@@ -19,12 +19,13 @@ class EventCreationForm(forms.ModelForm):
     class Meta:
         model = Event
         # manage Location via hidden inputs, not the FK widget
-        fields = ['title', 'description', 'start_time', 'end_time']
+        fields = ['title', 'description', 'start_time', 'end_time', "capacity"]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Event Title'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Event Description'}),
             'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             "end_time": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
+            "capacity": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Event Capacity"}),
         }
 
     def clean(self):
@@ -35,6 +36,8 @@ class EventCreationForm(forms.ModelForm):
             self.add_error('start_time', "Start time cannot be in the past.")
         if start_time and end_time and start_time >= end_time:
             self.add_error('end_time', "End time must be after start time.")
+        if cleaned.get("capacity") < 1:
+            self.add_error("capacity", "Capacity must be a positive integer.")
         return cleaned
 
     def save(self, commit=True, host=None):
@@ -119,12 +122,13 @@ class EventEditForm(forms.ModelForm):
 
     class Meta:
         model = Event
-        fields = ['title', 'description', 'start_time', 'end_time']
+        fields = ['title', 'description', 'start_time', 'end_time', "capacity"]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Event Title'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Event Description'}),
             'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            "capacity": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Event Capacity"}),
         }
 
     def clean(self):
@@ -135,6 +139,10 @@ class EventEditForm(forms.ModelForm):
             self.add_error('start_time', "Start time cannot be in the past.")
         if start_time and end_time and start_time >= end_time:
             self.add_error('end_time', "End time must be after start time.")
+
+        going_count = EventAttendee.objects.filter(event=self.instance, status='going').count()
+        if cleaned.get("capacity") < going_count:
+            self.add_error("capacity", "Capacity cannot be less than current attendee count.")
         return cleaned
 
     def save(self, commit=True):

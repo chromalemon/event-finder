@@ -109,12 +109,14 @@ def view_event(request, event_id):
         attendees_for_host = (
             EventAttendee.objects.filter(event=event).select_related("user").order_by("joined_at")
         )
+    going_count = EventAttendee.objects.filter(event=event, status='going').count()
 
     return render(request, "events/view_event.html", {
         "event": event,
         "user_attendee": user_attendee,
         "waitlisted_users": waitlisted_users,
         "attendees_for_host": attendees_for_host,
+        "going_count": going_count,
     })
 
 @require_POST
@@ -150,7 +152,11 @@ def change_attendee_status(request, event_id):
     if desired_status not in allowed:
         messages.error(request, "Invalid status.")
         return redirect("events:view_event", event_id=event.pk)
-
+    if desired_status == "going":
+        going_count = EventAttendee.objects.filter(event=event, status='going').count()
+        if going_count >= event.capacity:
+            messages.error(request, "Cannot set status to 'going': event is at full capacity.")
+            return redirect("events:view_event", event_id=event.pk)
     attendee.status = desired_status
     attendee.save()
     messages.success(request, f"Set {attendee.user.username} status to {desired_status}.")

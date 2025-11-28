@@ -9,7 +9,7 @@ class Event(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     location = models.ForeignKey("Location", on_delete=models.SET_NULL, related_name='events', null=True, blank=True)
-
+    capacity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.title

@@ -16,6 +16,7 @@
   {{ form.start_time.label_tag }} {{ form.start_time }}<br/>
   {{ form.end_time.label_tag }} {{ form.end_time }}<br/>
   {{ form.categories.label_tag }} {{ form.categories }}<br/>
+  {{ form.capacity.label_tag }} {{ form.capacity }}<br/>
 
   <!-- Hidden location fields (names must match form fields) -->
   <input type="hidden" id="id_formatted_address" name="formatted_address" value="{{ form.initial.formatted_address|default:'' }}">

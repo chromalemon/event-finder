@@ -16,7 +16,7 @@
             {% endfor %}</p>
 
         {# Attendees: host sees management UI, others see simple list #}
-        <p class="detail"><strong>Attendees:</strong></p>
+        <p class="detail"><strong>Attendees: {{ going_count }}</strong></p>
         {% if user == event.host %}
             {% if attendees_for_host %}
                 <ul>
@@ -48,7 +48,7 @@
                 <p>No attendees yet.</p>
             {% endif %}
         {% else %}
-            {% if event.attendees.count > 0 %}
+            {% if going_count > 0 %}
                 <ul>
                     {% for attendee in event.attendees.all %}
                         <li><a href="{% url 'profile' attendee.user.id %}">{{ attendee.user.username }}</a></li>
