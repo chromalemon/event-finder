@@ -3,19 +3,19 @@
 **Event Discovery Page**
 
 <div align="center">
-  <img src="docs/screenshot_event_list.png" alt="Event List" width="100%">
+  <img src="docs/screenshot_event_list.png" alt="Event List" width="100%" style="border-style: solid; border-width: 2px;>
 </div>
 
 **Event Chat Page**
 
 <div align="center">
-  <img src="docs/screenshot_event_chat.png" alt="Event Chat" width="100%">
+  <img src="docs/screenshot_event_chat.png" alt="Event Chat" width="100%" style="border-style: solid; border-width: 2px;>
 </div>
 
 **Event Creation Page**
 
 <div align="center">
-  <img src="docs/screenshot_event_creation.png" alt="Event Creation" width="100%">
+  <img src="docs/screenshot_event_creation.png" alt="Event Creation" width="100%" style="border-style: solid; border-width: 2px;>
 </div>
 
 ### Event Finder Overview
