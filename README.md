@@ -2,7 +2,13 @@
 
 <p align="center">
   <img src="docs/screenshot_event_list.png" width="100%">
+</p>
+
+<p align="center">
   <img src="docs/screenshot_event_chat.png" width="100">
+</p>
+
+<p align="center">
   <img src="docs/screenshot_event_creation.png" width="100">
 </p>
 

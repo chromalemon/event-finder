@@ -30,7 +30,6 @@ python manage.py migrate
 cd ..
 
 echo "Starting Redis..."
-docker rm -f redis >/dev/null 2>&1 || true
 
 if ! docker ps -a --format '{{.Names}}' | grep -q '^redis$'; then
     docker run -d --name redis -p 6379:6379 redis:7
