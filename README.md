@@ -1,6 +1,10 @@
 ### Demo
 
-
+<p align="center">
+  <img src="docs/screenshot_event_list.png" width="100%">
+  <img src="docs/screenshot_event_chat.png" width="100">
+  <img src="docs/screenshot_event_creation.png" width="100">
+</p>
 
 ### Event Finder Overview
 
