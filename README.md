@@ -1,24 +1,24 @@
-### Demo
+## Demo
 
 **Event Discovery Page**
 
 <div align="center">
-  <img src="docs/screenshot_event_list.png" alt="Event List" width="100%" style="border-style: solid; border-width: 2px;>
+  <img src="docs/screenshot_event_list.png" alt="Event List" width="100%" style="border-style: solid; border-width: 2px;">
 </div>
 
 **Event Chat Page**
 
 <div align="center">
-  <img src="docs/screenshot_event_chat.png" alt="Event Chat" width="100%" style="border-style: solid; border-width: 2px;>
+  <img src="docs/screenshot_event_chat.png" alt="Event Chat" width="100%" style="border-style: solid; border-width: 2px;"">
 </div>
 
 **Event Creation Page**
 
 <div align="center">
-  <img src="docs/screenshot_event_creation.png" alt="Event Creation" width="100%" style="border-style: solid; border-width: 2px;>
+  <img src="docs/screenshot_event_creation.png" alt="Event Creation" width="100%" style="border-style: solid; border-width: 2px;">
 </div>
 
-### Event Finder Overview
+# Event Finder Overview
 
 **Event Finder** is a Django webapp that I made for my A-level Computer Science NEA.
 
@@ -29,12 +29,12 @@
 - **Per-Event Real-time Chat** - Access an attendee-only live group chat, hosted privately for every event.
 - **Secure User Auth** - Create and manage an account which is stored securely. Upload a profile image and give yourself a description.
 
-### Prerequisites
+## Prerequisites
 
 - Python 3
 - Docker
 
-### Installation & Running
+## Installation & Running
 
 Clone the repository:
 
@@ -67,7 +67,7 @@ The application will then be available at:
 http://127.0.0.1:8000
 ```
 
-### Stopping redis
+## Stopping redis
 
 When you are finished:
 
