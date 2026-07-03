@@ -9,15 +9,6 @@
 - **Per-Event Real-time Chat** - Access an attendee-only live group chat, hosted privately for every event.
 - **Secure User Auth** - Create and manage an account which is stored securely. Upload a profile image and give yourself a description.
 
-## Demo
-
-**Event Discovery Page**
-
-<p align="center">
-  <img src="docs/screenshot_event_chat.png" width="400" style="border:1px solid #ddd; border-radius:8px;">
-  <img src="docs/screenshot_event_creation.png" width="400" style="border:1px solid #ddd; border-radius:8px;">
-</p>
-
 ## Prerequisites
 
 - Python 3
