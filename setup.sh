@@ -31,7 +31,12 @@ cd ..
 
 echo "Starting Redis..."
 docker rm -f redis >/dev/null 2>&1 || true
-docker run -d --name redis -p 6379:6379 redis:7 >/dev/null
+
+if ! docker ps -a --format '{{.Names}}' | grep -q '^redis$'; then
+    docker run -d --name redis -p 6379:6379 redis:7
+else
+    docker start redis >/dev/null
+fi
 
 echo "Waiting for Redis..."
 until docker exec redis redis-cli PING >/dev/null 2>&1; do
