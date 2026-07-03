@@ -1,16 +1,22 @@
 ### Demo
 
-<p align="center">
-  <img src="docs/screenshot_event_list.png" width="100%">
-</p>
+**Event Discovery Page**
 
-<p align="center">
-  <img src="docs/screenshot_event_chat.png" width="100">
-</p>
+<div align="center">
+  <img src="docs/screenshot_event_list.png" alt="Event List" width="100%">
+</div>
 
-<p align="center">
-  <img src="docs/screenshot_event_creation.png" width="100">
-</p>
+**Event Chat Page**
+
+<div align="center">
+  <img src="docs/screenshot_event_chat.png" alt="Event Chat" width="100%">
+</div>
+
+**Event Creation Page**
+
+<div align="center">
+  <img src="docs/screenshot_event_creation.png" alt="Event Creation" width="100%">
+</div>
 
 ### Event Finder Overview
 
