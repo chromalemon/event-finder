@@ -13,11 +13,15 @@
 
 **Event Discovery Page**
 
-<div align="center">
-  <img src="docs/screenshot_event_list.png" alt="Event List" width="100%" style="border-style: solid; border-width: 2px;">
-  <img src="docs/screenshot_event_chat.png" alt="Event Chat" width="100%" style="border-style: solid; border-width: 2px;">
-  <img src="docs/screenshot_event_creation.png" alt="Event Creation" width="100%" style="border-style: solid; border-width: 2px;">
-</div>
+<p align="center">
+  <img src="docs/screenshot_event_list.png"
+       width="850"
+       style="
+         border: 1px solid #ddd;
+         border-radius: 8px;
+         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+       ">
+</p>
 
 ## Prerequisites
 
