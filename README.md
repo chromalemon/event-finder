@@ -1,6 +1,6 @@
 # Event Finder Overview
 
-**Event Finder** is a Django webapp that I made for my A-level Computer Science NEA.
+**Event Finder** is a full-stack Django web application that enables users to discover, create and manage events, with integrated real-time group chats using Django Channels and WebSockets.
 
 **Key Capabilities**
 - **Event Discovery and Participation** - Browse a global list of events created by other people. Apply various filters and search by keywords to narrow search.
@@ -8,6 +8,16 @@
 - **Event Creation** - Create custom events at any location, adding descriptions, images, and categories.
 - **Per-Event Real-time Chat** - Access an attendee-only live group chat, hosted privately for every event.
 - **Secure User Auth** - Create and manage an account which is stored securely. Upload a profile image and give yourself a description.
+
+## Tech Stack
+
+- Python
+- Django
+- Django Channels
+- JavaScript
+- HTML/CSS
+- Docker
+- Redis
 
 ## Prerequisites
 
