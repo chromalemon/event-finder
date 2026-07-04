@@ -9,7 +9,7 @@ h11==0.16.0
 msgpack==1.2.1
 pillow==12.3.0
 pycparser==2.23
-pyOpenSSL==25.3.0
+pyOpenSSL==26.0.0
 redis==7.0.1
 sqlparse==0.5.4
 uvicorn==0.38.0
