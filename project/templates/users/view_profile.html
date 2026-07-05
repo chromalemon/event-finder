@@ -2,6 +2,7 @@
 {% block title %}View Profile{% endblock %}
 
 {% block content %}
+<section class="profile-panel page-panel">
 <h1>{{ user.username }}'s Profile</h1>
 <p><strong>Username:</strong> {{ user.username }}</p>
 <p><strong>Email:</strong> {{ user.email }}</p>
@@ -18,20 +19,24 @@
 
 {% load static %}
 {% if user.profile_image %}
-  <div class="current-avatar" style="margin-top:1rem;">
+  <div class="current-avatar">
     <h3>Current avatar</h3>
-    <img src="{{ user.profile_image.url }}" alt="{{ user.username }} avatar" style="max-width:200px;max-height:200px;border-radius:6px;">
+    <img src="{{ user.profile_image.url }}" alt="{{ user.username }} avatar">
   </div>
 {% else %}
-  <div class="current-avatar" style="margin-top:1rem;">
+  <div class="current-avatar">
     <h3>Current avatar</h3>
-    <img src="{% static 'images/default.svg' %}" alt="{{ user.username }} avatar" style="max-width:200px;max-height:200px;border-radius:6px;">
+    <img src="{% static 'images/default.svg' %}" alt="{{ user.username }} avatar">
   </div>
 {% endif %}
 
 
 {% if own %}
-    <br /><a href="{% url 'profile_edit' %}">Edit Profile</a>
+  <div class="form-actions">
+    <a class="btn-edit" href="{% url 'profile_edit' %}">Edit Profile</a>
+  </div>
 {% endif %}
+
+</section>
 
 {% endblock %} 

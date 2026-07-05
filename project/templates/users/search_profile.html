@@ -3,14 +3,19 @@
 {% block title %}Search Profiles{% endblock %}
 
 {% block content %}
+<section class="search-panel page-panel">
+  <h1>Search Profiles</h1>
 
-<form method="POST" enctype="multipart/form-data">
+  <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Search</button>
-</form>
+    <div class="form-actions">
+      <button type="submit">Search</button>
+    </div>
+  </form>
 
 {% if user %}
+  <div class="profile-panel page-panel">
     <h1>{{ user.username }}'s Profile</h1>
     <p><strong>Username:</strong> {{ user.username }}</p>
     <p><strong>Email:</strong> {{ user.email }}</p>
@@ -24,19 +29,22 @@
 {% endif %}
 
 {% if user.profile_image %}
-  <div class="current-avatar" style="margin-top:1rem;">
+  <div class="current-avatar">
     <h3>Current avatar</h3>
-    <img src="{{ user.profile_image.url }}" alt="{{ user.username }} avatar" style="max-width:200px;max-height:200px;border-radius:6px;">
+    <img src="{{ user.profile_image.url }}" alt="{{ user.username }} avatar">
   </div>
 {% else %}
-  <div class="current-avatar" style="margin-top:1rem;">
+  <div class="current-avatar">
     <h3>Current avatar</h3>
-    <img src="{% static 'images/default.svg' %}" alt="{{ user.username }} avatar" style="max-width:200px;max-height:200px;border-radius:6px;">
+    <img src="{% static 'images/default.svg' %}" alt="{{ user.username }} avatar">
   </div>
 {% endif %}
+    </div>
 
 {% else %}
     <p>No user found with the provided username.</p>
 {% endif %}
+
+</section>
 
 {% endblock %} 

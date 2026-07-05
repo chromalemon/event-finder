@@ -4,19 +4,23 @@
 {% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>{% endblock %}
 
 {% block content %}
+<section class="page-panel">
 <h1>{% if context == "edit" %}Edit Event{% else %}Create Event{% endif %}</h1>
+<p class="page-copy">Fill in the event details and choose a location on the map.</p>
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" class="event-form">
   {% csrf_token %}
   {{ form.non_field_errors }}
   {{ form.errors }}
 
-  {{ form.title.label_tag }} {{ form.title }}<br/>
-  {{ form.description.label_tag }} {{ form.description }}<br/>
-  {{ form.start_time.label_tag }} {{ form.start_time }}<br/>
-  {{ form.end_time.label_tag }} {{ form.end_time }}<br/>
-  {{ form.categories.label_tag }} {{ form.categories }}<br/>
-  {{ form.capacity.label_tag }} {{ form.capacity }}<br/>
+  <div class="form-grid">
+    {{ form.title.label_tag }} {{ form.title }}
+    {{ form.description.label_tag }} {{ form.description }}
+    {{ form.start_time.label_tag }} {{ form.start_time }}
+    {{ form.end_time.label_tag }} {{ form.end_time }}
+    {{ form.categories.label_tag }} {{ form.categories }}
+    {{ form.capacity.label_tag }} {{ form.capacity }}
+  </div>
 
   <!-- Hidden location fields (names must match form fields) -->
   <input type="hidden" id="id_formatted_address" name="formatted_address" value="{{ form.initial.formatted_address|default:'' }}">
@@ -27,10 +31,12 @@
   <input type="hidden" id="id_country" name="country" value="{{ form.initial.country|default:'' }}">
   <input type="hidden" id="id_postcode" name="postcode" value="{{ form.initial.postcode|default:'' }}">
 
-  <button type="submit">{% if context == "edit" %}Save Changes{% else %}Create Event{% endif %}</button>
+  <div class="form-actions">
+    <button type="submit">{% if context == "edit" %}Save Changes{% else %}Create Event{% endif %}</button>
+  </div>
 </form>
 
-<div id="map" style="height:400px;"></div>
+<div id="map"></div>
 <!-- Leaflet + your JS should update the hidden inputs -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -136,4 +142,5 @@
     });
   }
 </script>
+</section>
 {% endblock %}

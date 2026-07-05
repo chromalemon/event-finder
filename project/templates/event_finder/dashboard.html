@@ -3,9 +3,13 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1>Welcome back, {{ user.first_name|default:user.username }}!</h1>
+<section class="hero">
+    <p class="eyebrow">Your home base</p>
+    <h1>Welcome back, {{ user.first_name|default:user.username }}!</h1>
+    <p class="page-copy">Manage your profile, host new events, and keep track of the ones you are attending.</p>
+</section>
 
-<section class="quick-links">
+<section class="quick-links page-panel">
     <h2>Quick Links</h2>
     <ul>
         <li><a href="{% url 'profile' %}">Your Profile</a></li>
@@ -15,7 +19,7 @@
     </ul>
 </section>
 
-<section class="upcoming-events">
+<section class="upcoming-events page-panel">
     <h2>Hosted Events</h2>
     {% if hosted_events %}
         <ul>

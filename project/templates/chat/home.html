@@ -2,8 +2,9 @@
 {% block title %}Group Chats{% endblock %}
 
 {% block content %}
+<section class="chat-panel page-panel">
 <h1>Group Chats</h1>
-<p>Open the chat rooms for events you are participating in (host or attendee with status "going").</p>
+<p class="page-copy">Open the chat rooms for events you are participating in as the host or as an attendee with status "going".</p>
 
 {% if not user.is_authenticated %}
   <p>Please <a href="{% url 'login' %}?next={% url 'chat:index' %}">log in</a> to see your event chats.</p>
@@ -11,7 +12,7 @@
   {% if events %}
     <ul class="chat-list">
       {% for event in events %}
-        <li style="margin-bottom:1rem;">
+        <li>
           <strong><a href="{% url 'events:view_event' event.id %}">{{ event.title }}</a></strong>
           <div>
             <small>
@@ -20,7 +21,7 @@
               Location: {{ event.location.formatted_address|default:"(no location)" }}
             </small>
           </div>
-          <div style="margin-top:6px;">
+          <div class="card-actions">
             <a class="btn" href="{% url 'chat:room' event.pk %}">Open Chat</a>
           </div>
         </li>
@@ -30,4 +31,5 @@
     <p>You are not currently an attendee of any event chats.</p>
   {% endif %}
 {% endif %}
+</section>
 {% endblock %}

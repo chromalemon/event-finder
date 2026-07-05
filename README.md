@@ -9,6 +9,33 @@
 - **Per-Event Real-time Chat** - Access an attendee-only live group chat, hosted privately for every event.
 - **Secure User Auth** - Create and manage an account which is stored securely. Upload a profile image and give yourself a description.
 
+## Screenshots
+
+ **Event Creation Page**
+
+<picture>
+ <source media="(prefers-color-scheme: dark)" srcset="docs/dark_create.png">
+ <source media="(prefers-color-scheme: light)" srcset="docs/light_create.png">
+ <img alt="Event Creation Page" src="docs/dark_create.png">
+</picture>
+
+**Event Chat Page**
+
+<picture>
+ <source media="(prefers-color-scheme: dark)" srcset="docs/dark_chat.png">
+ <source media="(prefers-color-scheme: light)" srcset="docs/light_chat.png">
+ <img alt="Event Chat Page" src="docs/dark_chat.png">
+</picture>
+
+**Event Discovery Page**
+
+<picture>
+ <source media="(prefers-color-scheme: dark)" srcset="docs/dark_list.png">
+ <source media="(prefers-color-scheme: light)" srcset="docs/light_list.png">
+ <img alt="Event List Page" src="docs/dark_list.png">
+</picture>
+
+
 ## Tech Stack
 
 - Python
@@ -64,3 +91,6 @@ When you are finished:
 ```bash
 docker stop redis
 ```
+
+> [!TIP]
+> If after using "docker stop redis" the chat no longer connects, run "./setup.sh" again to reboot the redis image.

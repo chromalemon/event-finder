@@ -3,15 +3,16 @@
 {% block title %}Chat — {{ event.title }}{% endblock %}
 
 {% block content %}
+<section class="chat-panel page-panel">
 <h1>Chat: {{ event.title }}</h1>
-<p><small>Host: {{ event.host.username }} • Starts: {{ event.start_time|date:"M d, Y H:i" }}</small></p>
+<p class="meta"><small>Host: {{ event.host.username }} • Starts: {{ event.start_time|date:"M d, Y H:i" }}</small></p>
 
-<div id="chat-container" style="max-width:900px;">
-  <div id="chat-status" style="margin-bottom:8px;color:#444">Connecting...</div>
-  <div id="chat-messages" style="height:360px; overflow:auto; border:1px solid #ddd; padding:8px; margin-bottom:8px;"></div>
+<div id="chat-container">
+  <div id="chat-status">Connecting...</div>
+  <div id="chat-messages"></div>
 
   <form id="chat-form">
-    <input id="chat-input" name="message" autocomplete="off" placeholder="Write a message..." style="width:80%;" />
+    <input id="chat-input" name="message" autocomplete="off" placeholder="Write a message..." />
     <button id="chat-send" type="submit">Send</button>
   </form>
 </div>
@@ -28,7 +29,7 @@
   function appendMessage(username, text, timestamp){
     const el = document.createElement("div");
     el.style.padding = "6px 0";
-    const when = timestamp ? (" <small style='color:#666'>"+timestamp+"</small>") : "";
+    const when = timestamp ? (" <small>"+timestamp+"</small>") : "";
     el.innerHTML = "<strong>" + (username || "anon") + ":</strong> " + (text || "") + when;
     messagesEl.appendChild(el);
     messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -96,4 +97,5 @@
   });
 })();
 </script>
+ </section>
 {% endblock %}

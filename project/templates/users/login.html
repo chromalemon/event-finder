@@ -2,17 +2,22 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-{% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}{% if message.extra_tags == "email_taken" %}<a href="../login">please login instead.</a>{% endif %}</li>
-                {% endfor %}
-            </ul>
-{% endif %}
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
+<section class="auth-panel page-panel">
+    <h1>Login</h1>
+    {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}{% if message.extra_tags == "email_taken" %}<a href="../login">please login instead.</a>{% endif %}</li>
+                    {% endfor %}
+                </ul>
+    {% endif %}
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
 
-    <button type="submit">Login</button>
-</form>
+        <div class="form-actions">
+            <button type="submit">Login</button>
+        </div>
+    </form>
+</section>
 {% endblock %}

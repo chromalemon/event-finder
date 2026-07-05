@@ -2,8 +2,13 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h1>Welcome to Event Finder</h1>
-<p>Discover and create events in your area.</p>
-<button onclick="location.href='{% url 'register' %}'">Register</button>
-    <button onclick="location.href='{% url 'login' %}'">Login</button>
+<section class="hero">
+    <p class="eyebrow">Plan. Discover. Connect.</p>
+    <h1>Welcome to Event Finder</h1>
+    <p class="page-copy">Discover events, manage attendance, and keep conversations in one place with a cleaner, more focused experience.</p>
+    <div class="hero-actions">
+        <a class="btn" href="{% url 'register' %}">Register</a>
+        <a class="btn-secondary" href="{% url 'login' %}">Login</a>
+    </div>
+</section>
 {% endblock %}
