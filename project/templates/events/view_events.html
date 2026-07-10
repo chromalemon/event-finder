@@ -19,13 +19,15 @@
             <input type="text" name="country" placeholder="Country" value="{{ country_filter }}">
             <fieldset>
                 <legend>Categories:</legend>
-                {% for cat in categories %}
-                <label>
-                    <input type="checkbox" name="category" value="{{ cat.name }}"
-                    {% if cat.name in category_filters %}checked{% endif %}>
-                    {{ cat.name }}
-                </label>
-                {% endfor %}
+                <div class="category-options">
+                    {% for cat in categories %}
+                    <label class="category-option">
+                        <input type="checkbox" name="category" value="{{ cat.name }}"
+                        {% if cat.name in category_filters %}checked{% endif %}>
+                        <span>{{ cat.name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
             </fieldset>
 
             <label for="start_date">From:</label>

@@ -569,11 +569,22 @@ button:hover,
     padding: 0 0.35rem;
 }
 
-.extra-filters label {
-    display: flex;
+.extra-filters .category-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 0.5rem 1rem;
+}
+
+.extra-filters .category-option {
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.55rem;
     font-weight: 500;
+}
+
+.extra-filters .category-option input[type="checkbox"] {
+    margin: 0;
+    flex: 0 0 auto;
 }
 
 .profile-form,
