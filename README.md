@@ -48,8 +48,8 @@
 
 ## Prerequisites
 
-- Python 3
 - Docker
+- Docker Compose
 
 ## Installation & Running
 
@@ -63,7 +63,7 @@ cd event-finder
 Make the scripts executable:
 
 ```bash
-chmod +x setup.sh run.sh
+chmod +x setup.sh run.sh test.sh
 ```
 
 Run the setup script:
@@ -78,6 +78,12 @@ Start the application:
 ./run.sh
 ```
 
+Run the test suite:
+
+```bash
+./test.sh
+```
+
 The application will then be available at:
 
 ```
@@ -89,8 +95,12 @@ http://127.0.0.1:8000
 When you are finished:
 
 ```bash
-docker stop redis
+docker compose down
 ```
 
 > [!TIP]
-> If after using "docker stop redis" the chat no longer connects, run "./setup.sh" again to reboot the redis image.
+> Redis runs as part of the compose stack, so `./setup.sh` and `./run.sh` manage it for you.
+
+## Local Environment
+
+If you want to customize the container settings, copy [.env.example](.env.example) to `.env` and adjust the values there.

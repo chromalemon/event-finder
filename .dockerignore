@@ -1,0 +1,13 @@
+.git
+.gitignore
+.venv
+__pycache__/
+*.py[cod]
+*.sqlite3
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+media/
+staticfiles/
+node_modules/
