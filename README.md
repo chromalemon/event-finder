@@ -56,8 +56,8 @@
 Clone the repository:
 
 ```bash
-git clone https://github.com/chromalemon/event-finder Event_Finder
-cd Event_Finder
+git clone https://github.com/chromalemon/event-finder 
+cd event-finder 
 ```
 
 Make the scripts executable:
