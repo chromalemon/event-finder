@@ -19,6 +19,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / '.env')
 
+
+def parse_csv_env(name, default=None):
+    values = os.environ.get(name, "")
+    if not values:
+        return default or []
+    return [value.strip() for value in values.split(",") if value.strip()]
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -31,7 +38,7 @@ DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
 if DEBUG:
 	ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
 else:
-	ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+    ALLOWED_HOSTS = parse_csv_env("ALLOWED_HOSTS")
 
 if DEBUG:
 	CSRF_TRUSTED_ORIGINS = [
@@ -40,7 +47,7 @@ if DEBUG:
 	    "http://0.0.0.0:8000",
 	]
 else:
-	CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    CSRF_TRUSTED_ORIGINS = parse_csv_env("CSRF_TRUSTED_ORIGINS")
 
 ASGI_APPLICATION = "event_finder.asgi.application"
 WSGI_APPLICATION = "event_finder.wsgi.application"
