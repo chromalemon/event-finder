@@ -560,7 +560,7 @@ button:hover,
 
 .extra-filters fieldset {
     margin: 0;
-    padding: 1rem;
+    padding: 0.9rem 1rem 1rem;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
 }
@@ -573,27 +573,39 @@ button:hover,
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
-    align-items: flex-start;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.35rem;
 }
 
 .extra-filters .category-option {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    font-weight: 500;
-    padding: 0.4rem 0.7rem;
+    gap: 0.42rem;
+    margin: 0;
+    padding: 0.4rem 0.65rem;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
     background: var(--surface-strong);
+    color: var(--text);
+    font-size: 0.95rem;
+    line-height: 1.15;
     width: fit-content;
     max-width: 100%;
     white-space: nowrap;
+    box-shadow: var(--shadow-soft);
 }
 
 .extra-filters .category-option input[type="checkbox"] {
     margin: 0;
+    width: 1rem;
+    height: 1rem;
     flex: 0 0 auto;
+    accent-color: var(--accent);
+}
+
+.extra-filters .category-option span {
+    color: inherit;
 }
 
 .profile-form,
