@@ -570,16 +570,25 @@ button:hover,
 }
 
 .extra-filters .category-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-    gap: 0.5rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 0.5rem;
 }
 
 .extra-filters .category-option {
     display: inline-flex;
     align-items: center;
-    gap: 0.55rem;
+    gap: 0.45rem;
     font-weight: 500;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-strong);
+    width: fit-content;
+    max-width: 100%;
+    white-space: nowrap;
 }
 
 .extra-filters .category-option input[type="checkbox"] {
