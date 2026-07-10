@@ -31,3 +31,11 @@ def dashboard(request):
     if not joined_events.exists():
         messages.info(request, "You haven't joined any events yet. Explore and join some!")
     return render(request, 'event_finder/dashboard.html', {'joined_events': joined_events, "hosted_events": hosted_events})
+
+
+def custom_404(request, exception):
+    return render(request, "404.html", status=404)
+
+
+def custom_500(request):
+    return render(request, "500.html", status=500)

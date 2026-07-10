@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.http import HttpResponseForbidden
+from django.db.models import Count
 
 # Create your views here.
 
@@ -29,7 +30,12 @@ def create_event(request):
 
 def view_events(request):
     # fetch all events initially
-    events = Event.objects.select_related("location", "host").prefetch_related("event_categories__cat").all()
+    events = (
+        Event.objects.select_related("location", "host")
+        .prefetch_related("event_categories__cat")
+        .annotate(attendee_count=Count("attendees"))
+        .all()
+    )
 
     # fetch filter/sort params and apply them
     query = request.GET.get('q', '') 
@@ -60,6 +66,14 @@ def view_events(request):
             events = events.filter(end_time__lte=end_dt)
         except ValueError:
             pass
+    if sort_order == 'date_desc':
+        events = events.order_by('-start_time')
+    elif sort_order == 'title_asc':
+        events = events.order_by('title', 'start_time')
+    elif sort_order == 'title_desc':
+        events = events.order_by('-title', 'start_time')
+    else:
+        events = events.order_by('start_time')
 
     categories = Category.objects.all()
     paginator = Paginator(events, 10)
@@ -79,12 +93,7 @@ def view_events(request):
         'paginator': paginator,
         'page_obj': page_obj,
     }
-    return render(request, "events/view_events.html", {
-        "events": events,
-        "query": query,
-        "categories": categories,
-        "page_obj": paginator.get_page(page_number),
-    })
+    return render(request, "events/view_events.html", context)
 
 def view_event(request, event_id):
     event = get_object_or_404(Event.objects.select_related("host", "location"), pk=event_id)

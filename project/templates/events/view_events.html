@@ -34,23 +34,27 @@
             <label for="end_date">To:</label>
             <input type="date" name="end_date" id="end_date" value="{{ end_date }}">
 
-            <label for="sort">Sort by Date:</label>
+            <label for="sort">Sort by:</label>
             <select name="sort" id="sort">
-                <option value="date_asc" {% if sort_order == 'date_asc' %}selected{% endif %}>Ascending</option>
-                <option value="date_desc" {% if sort_order == 'date_desc' %}selected{% endif %}>Descending</option>
+                <option value="date_asc" {% if sort_order == 'date_asc' %}selected{% endif %}>Date (Ascending)</option>
+                <option value="date_desc" {% if sort_order == 'date_desc' %}selected{% endif %}>Date (Descending)</option>
+                <option value="title_asc" {% if sort_order == 'title_asc' %}selected{% endif %}>Title (A-Z)</option>
+                <option value="title_desc" {% if sort_order == 'title_desc' %}selected{% endif %}>Title (Z-A)</option>
             </select>
         </div>
     </form>
 </section>
-{% if events %}
+{% if page_obj.object_list %}
     <div class="events-container">
-    {% for event in events %}
+    {% for event in page_obj %}
         <article class="event-card">
             <h3><a href="{% url 'events:view_event' event.id %}">{{ event.title }}</a></h3>
             <p><strong>Date:</strong> {{ event.start_time|date:"M d, Y H:i" }}</p>
             <p><strong>Location:</strong> {{ event.location.formatted_address }}</p>
             <p><strong>Hosted by:</strong> {{ event.host.username }}</p>
             <p class="description"><strong>Description:</strong> {{ event.description|truncatewords:20 }}</p>
+            <p><strong>Capacity:</strong> {{ event.capacity }}</p>
+            <p><strong>Attendees:</strong> {{ event.attendee_count }}</p>
             <p><strong>Categories:</strong>
                 {% for ec in event.event_categories.all %}
                     {{ ec.cat.name }}{% if not forloop.last %}, {% endif %}
@@ -58,8 +62,6 @@
                     No categories
                 {% endfor %}
             </p>
-            <p><strong>Attendees:</strong>
-                {{ event.attendees.count }}</p>
         </article>
     {% endfor %}
     </div>
@@ -67,6 +69,9 @@
     <div class="pagination">
         {% if page_obj.has_previous %}
             <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="page-link">Next</a>
         {% endif %}
     </div>
 {% else %}

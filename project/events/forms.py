@@ -36,7 +36,8 @@ class EventCreationForm(forms.ModelForm):
             self.add_error('start_time', "Start time cannot be in the past.")
         if start_time and end_time and start_time >= end_time:
             self.add_error('end_time', "End time must be after start time.")
-        if cleaned.get("capacity") < 1:
+        capacity = cleaned.get("capacity")
+        if capacity is None or capacity < 1:
             self.add_error("capacity", "Capacity must be a positive integer.")
         return cleaned
 
@@ -80,6 +81,29 @@ class EventCreationForm(forms.ModelForm):
                     long=long,
                 )
                 event.location = loc
+
+        else:
+            if getattr(event, "location", None):
+                loc = event.location
+                loc.formatted_address = "Online"
+                loc.lat = 0
+                loc.long = 0
+                loc.city = None
+                loc.country = None
+                loc.postcode = None
+                loc.save()
+                event.location = loc
+            else:
+                loc = Location.objects.create(
+                        formatted_address="Online",
+                        city=None,
+                        country=None,
+                        postcode=None,
+                        lat=0,
+                        long=0,
+                    )
+                event.location = loc
+            
         # if no address provided and event had an existing location, we leave it unchanged
 
         if commit:

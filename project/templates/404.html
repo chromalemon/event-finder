@@ -1,0 +1,11 @@
+{% extends "event_finder/base.html" %}
+
+{% block title %}Page Not Found{% endblock %}
+
+{% block content %}
+<section class="page-panel error-panel">
+    <h1>Page Not Found</h1>
+    <p class="page-copy">The page you were looking for does not exist or has been moved.</p>
+    <p><a href="{% url 'home' %}">Return home</a></p>
+</section>
+{% endblock %}

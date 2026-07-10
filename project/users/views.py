@@ -6,6 +6,7 @@ from django.contrib.auth import login as auth_login, logout as auth_logout, get_
 from django.contrib.auth.decorators import login_required
 from users.forms import CustomUserRegisterForm, CustomUserLoginForm, CustomUserProfileSearchForm
 from .forms import UserProfileEditForm
+from django.db.models import Q
 
 # Create your views here.
 
@@ -58,10 +59,7 @@ def profile_search(request):
         form = CustomUserProfileSearchForm(request.POST)
         if form.is_valid():
             query = form.cleaned_data['query']
-            try:
-                user = User.objects.get(username=query)
-            except User.DoesNotExist:
-                user = None
+            user = User.objects.filter(Q(username__iexact=query) | Q(email__iexact=query)).first()
             return render(request, "users/search_profile.html", {"form": form, "user": user})
     else:
         form = CustomUserProfileSearchForm()

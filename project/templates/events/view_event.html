@@ -8,6 +8,7 @@
         <p class="detail"><strong>Location:</strong> {{ event.location.formatted_address }}</p>
         <p class="detail"><strong>Hosted by:</strong> <a href="{% url 'profile' event.host.pk %}">{{ event.host.username }}</a></p>
         <p class="detail"><strong>Description:</strong> {{ event.description }}</p>
+        <p class="detail"><strong>Capacity:</strong> {{ event.capacity }}</p>
         <p class="detail"><strong>Categories:</strong>
             {% for ec in event.event_categories.all %}
                 {{ ec.cat.name }}{% if not forloop.last %}, {% endif %}
