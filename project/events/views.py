@@ -225,20 +225,24 @@ def join_event(request, event_id):
 @login_required
 @require_POST
 def leave_event(request, event_id):
+    
     event = get_object_or_404(Event, pk=event_id)
-
+            
     try:
-        attendee = EventAttendee.objects.get(event=event, user=request.user)
+        with transaction.atomic():
+            attendee = EventAttendee.objects.select_for_update().get(event=event, user=request.user)
+            attendee.status = "not_going"
+            attendee.save()
+            first_waitlisted = EventAttendee.objects.filter(event=event, status="waitlist").first()
+        if first_waitlisted:
+            first_waitlisted.status = "going"
+            first_waitlisted.save()
+        messages.success(request, "You have left the event")
+
     except EventAttendee.DoesNotExist:
-        # create a not_going record for idempotence (or simply redirect with message)
         EventAttendee.objects.create(event=event, user=request.user, status='not_going')
         messages.info(request, "You are not listed as attending; marked as not going.")
-        return redirect('events:view_event', event_id=event_id)
 
-    # Do not delete record, instead set status to not_going
-    attendee.status = 'not_going'
-    attendee.save()
-    messages.success(request, "You have left the event.")
     return redirect('events:view_event', event_id=event_id)
 
 def haversine(lat1, lon1, lat2, lon2): # helper function to calculate distance between two lat/long points

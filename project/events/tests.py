@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from events.forms import EventCreationForm
-from events.models import Event, Location
+from events.models import Event, Location, EventAttendee
 
 
 class SmokeTests(TestCase):
@@ -78,3 +78,35 @@ class EventBehaviorTests(TestCase):
 		self.assertContains(response, "Later event")
 		self.assertContains(response, "Earlier event")
 		self.assertLess(response.content.decode().find("Later event"), response.content.decode().find("Earlier event"))
+	
+	def test_waitlisted_user_promoted_upon_other_user_leaving(self):
+		User = get_user_model()
+		host = User.objects.create_user(username="host", email="host@example.com", password="pass12345")
+		attendee1 = User.objects.create_user(username="attendee1", email="attendee1@example.com", password="pass12345")
+		attendee2 = User.objects.create_user(username="attendee2", email="attendee2@example.com", password="pass12345")
+		test_event = Event.objects.create(
+			host=host,
+			title="Test event",
+			description="Desc",
+			start_time=timezone.now() + timezone.timedelta(days=1),
+			end_time=timezone.now() + timezone.timedelta(days=2),
+			capacity=2
+		)
+		join1 = EventAttendee.objects.create(
+			event=test_event,
+			user=attendee1,
+			status="going"
+		)
+		join2 = EventAttendee.objects.create(
+			event=test_event,
+			user=attendee2,
+			status="waitlist"
+		)
+		self.client.login(username="attendee1", password="pass12345")
+		url = reverse("events:leave_event", kwargs={"event_id": test_event.id})
+		response = self.client.post(url)
+		self.assertEqual(response.status_code, 302)
+		join1.refresh_from_db()
+		join2.refresh_from_db()
+		self.assertEqual(join2.status, "going")
+		self.assertEqual(join1.status, "not_going")
