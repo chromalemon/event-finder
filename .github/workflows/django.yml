@@ -21,11 +21,10 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        cd project
+        
     - name: Run Tests
-      run: |
-        python project/manage.py test
+      run: docker compose run --rm python manage.py test
+      
+    - name: Cleanup
+      if: always()
+      run: docker compose down -v
