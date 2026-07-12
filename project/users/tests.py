@@ -10,6 +10,6 @@ class ProfileSearchTests(TestCase):
 		user = User.objects.create_user(username="alice", email="alice@example.com", password="pass12345")
 		self.client.force_login(user)
 
-		response = self.client.post(reverse("profile_search"), {"query": "alice@example.com"})
+		response = self.client.get(f"{reverse('profile_search')}?q=alice")
 
-		self.assertContains(response, "alice")
+		self.assertContains(response, "alice@example.com")
