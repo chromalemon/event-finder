@@ -6,6 +6,9 @@ from events.models import Event
 
 
 class ChatMessage(models.Model):
+    """
+    Model representing a message in the chat system.
+    """
     event = models.ForeignKey("events.Event", on_delete=models.CASCADE, related_name='messages')
     user = models.ForeignKey("users.CustomUser", on_delete=models.CASCADE, related_name='messages')
     content = models.TextField()

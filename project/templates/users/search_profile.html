@@ -6,12 +6,13 @@
 <section class="search-panel page-panel">
   <h1>Search Profiles</h1>
 
-  <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
+  <form method="get" class="search-form">
+  <div class="search-row">
+  <input type="text" name="q" placeholder="Search by username or email" value="{{ query }}" class="search-input">
     <div class="form-actions">
       <button type="submit">Search</button>
     </div>
+  </div>
   </form>
 
 {% if user %}
@@ -42,7 +43,7 @@
     </div>
 
 {% else %}
-    <p>No user found with the provided username.</p>
+    <p>No user found with the provided details.</p>
 {% endif %}
 
 </section>

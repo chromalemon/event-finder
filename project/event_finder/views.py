@@ -12,7 +12,6 @@ def home(request):
 
 @login_required
 def dashboard(request):
-    # only consider attendees with status "going"
     hosted_events = Event.objects.filter(
         host=request.user,
         start_time__gte=now()

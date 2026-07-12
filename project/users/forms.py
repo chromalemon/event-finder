@@ -1,6 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django import forms
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -66,22 +67,32 @@ class CustomUserLoginForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={'class': 'form-control'})
     )
 
-class CustomUserProfileSearchForm(forms.Form):
-    """
-    Form for searching user profiles by username or email.
-    """
-    query = forms.CharField(
-        required=True,
-        label='Search',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter username or email'})
-    )
-
 class UserProfileEditForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'profile_image']  # adjust to your CustomUser fields
+        fields = ['first_name', 'last_name', 'email', 'profile_image']
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+    def clean(self):
+        cleaned = super().clean()
+        email = cleaned.get('email')
+        if User.objects.filter(~Q(pk=self.instance.pk), email=email).exists():
+            self.add_error("email", "Email is already registered.")
+        return cleaned
+        
+    def save(self, commit=True):
+        user = super().save(commit=False)
+
+        pfp = self.cleaned_data.get("profile_image")
+
+        if not pfp:
+            user.profile_image = 'avatars/default.svg'
+
+        if commit:
+            user.save()
+
+        return user

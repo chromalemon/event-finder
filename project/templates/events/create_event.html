@@ -1,6 +1,6 @@
 {% extends "event_finder/base.html" %}
 
-{% block title %}Create Event{% endblock %}
+{% block title %}{% if context == "edit" %}Edit Event{% else %}Create Event{% endif %}{% endblock %}
 {% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>{% endblock %}
 
 {% block content %}

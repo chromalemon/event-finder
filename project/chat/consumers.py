@@ -5,13 +5,12 @@ from django.utils import timezone
 
 class EventChatConsumer(AsyncWebsocketConsumer):
     """
-    WebSocket consumer for per-event group chat.
-
-    - Avoids importing models at module import time (lazy imports inside DB helpers)
-      so ASGI startup doesn't fail with "Apps aren't loaded yet."
-    - Enforces that only event hosts or attendees with status "going" can connect.
+    WebSocket consumer for handling chat messages. 
     """
     async def connect(self):
+        """
+        Connect to the WebSocket.
+        """
         self.event_id = self.scope['url_route']['kwargs'].get('event_id')
         if not self.event_id:
             await self.close()
@@ -39,12 +38,18 @@ class EventChatConsumer(AsyncWebsocketConsumer):
             pass
 
     async def disconnect(self, close_code):
+        """
+        Disconnect from the WebSocket and remove from the group.
+        """
         try:
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
         except Exception:
             pass
 
     async def receive(self, text_data=None, bytes_data=None):
+        """
+        Receive a message from the WebSocket.
+        """
         if text_data is None:
             return
         data = json.loads(text_data)
@@ -72,6 +77,9 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(self.group_name, payload)
 
     async def chat_message(self, event):
+        """
+        Handle a chat message event.
+        """
         await self.send(text_data=json.dumps({
             "type": "message",
             "message": event.get("message"),
@@ -82,7 +90,9 @@ class EventChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def _user_is_allowed(self, user, event_id):
-        # lazy imports to avoid touching Django models at module import time
+        """
+        Check if the user is allowed to access the chat for the given event.
+        """
         from events.models import Event, EventAttendee
         try:
             event = Event.objects.get(pk=event_id)
@@ -94,15 +104,13 @@ class EventChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def _save_message(self, event_id, user, message_text):
-        # Lazy import ChatMessage and Event so this runs only when apps are ready
+        """
+        Save a chat message to the database and return metadata about the saved message.
+        """
         from .models import ChatMessage
-        from events.models import Event
-        from django.contrib.auth import get_user_model
 
-        # prepare kwargs for create()
         kwargs = {}                
-        # use the _id fields to avoid passing model instances at runtime
-        # ensure we only save messages from authenticated users
+
         if not (user and getattr(user, "is_authenticated", False)):
             return None
         kwargs["event_id"] = event_id
@@ -120,6 +128,9 @@ class EventChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def _get_recent_messages(self, event_id, limit=50):
+        """
+        Retrieve recent chat messages for the given event.
+        """
         from .models import ChatMessage
 
         qs = ChatMessage.objects.filter(event_id=event_id)

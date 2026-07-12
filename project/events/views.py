@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import EventCreationForm, EventEditForm
+from .forms import BaseEventForm
 from .models import Event, EventAttendee, Category
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -19,14 +19,43 @@ from django.db.models import Count
 @login_required
 def create_event(request):
     if request.method == "POST":
-        form = EventCreationForm(request.POST, request.FILES)
+        form = BaseEventForm(request.POST, request.FILES)
         if form.is_valid(): # add event to database
             event = form.save(commit=True, host=request.user)
             messages.success(request, "Event created.")
             return redirect('events:view_event', event_id=event.pk)
     else:
-        form = EventCreationForm()
+        form = BaseEventForm()
     return render(request, "events/create_event.html", {"form": form, "context": "create"})
+
+def edit_event(request, event_id):
+    event = get_object_or_404(Event, pk=event_id)
+    if request.user != event.host and not request.user.is_staff:
+        messages.error(request, "No permission to edit.")
+        return redirect('events:view_event', event_id=event_id)
+
+    initial = {}
+    if event.location:
+        initial.update({
+            "formatted_address": event.location.formatted_address,
+            "lat": event.location.lat,
+            "long": event.location.long,
+            "city": event.location.city,
+            "country": event.location.country,
+            "postcode": event.location.postcode,
+        })
+    initial["categories"] = ", ".join(ec.cat.name for ec in event.event_categories.all())
+
+    if request.method == "POST":
+        form = BaseEventForm(request.POST, request.FILES, instance=event)
+        if form.is_valid():
+            form.save(commit=True)
+            messages.success(request, "Event updated.")
+            return redirect('events:view_event', event_id=event.pk)
+    else:
+        form = BaseEventForm(instance=event, initial=initial)
+
+    return render(request, "events/create_event.html", {"form": form, "context": "edit", "event": event})
 
 def view_events(request):
     # fetch all events initially
@@ -47,7 +76,7 @@ def view_events(request):
     sort_order = request.GET.get('sort', 'date_asc')
 
     if query:
-        events = events.filter(title__icontains=query)
+        events = events.filter(Q(title__icontains=query) | Q(location__formatted_address__icontains=query))
     if city_filter:
         events = events.filter(location__city__icontains=city_filter)
     if country_filter:
@@ -251,32 +280,3 @@ def haversine(lat1, lon1, lat2, lon2): # helper function to calculate distance b
     dlon = radians(lon2 - lon1)
     a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
     return R * 2 * asin(sqrt(a))
-
-def edit_event(request, event_id):
-    event = get_object_or_404(Event, pk=event_id)
-    if request.user != event.host and not request.user.is_staff:
-        messages.error(request, "No permission to edit.")
-        return redirect('events:view_event', event_id=event_id)
-
-    initial = {}
-    if event.location:
-        initial.update({
-            "formatted_address": event.location.formatted_address,
-            "lat": event.location.lat,
-            "long": event.location.long,
-            "city": event.location.city,
-            "country": event.location.country,
-            "postcode": event.location.postcode,
-        })
-    initial["categories"] = ", ".join(ec.cat.name for ec in event.event_categories.all())
-
-    if request.method == "POST":
-        form = EventEditForm(request.POST, request.FILES, instance=event)
-        if form.is_valid():
-            form.save(commit=True)
-            messages.success(request, "Event updated.")
-            return redirect('events:view_event', event_id=event.pk)
-    else:
-        form = EventEditForm(instance=event, initial=initial)
-
-    return render(request, "events/create_event.html", {"form": form, "context": "edit", "event": event})

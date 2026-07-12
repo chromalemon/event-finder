@@ -3,9 +3,7 @@ from django.urls import reverse
 
 from django.contrib.auth import get_user_model
 
-
 User = get_user_model()
-
 
 class ProfileSearchTests(TestCase):
 	def test_profile_search_finds_user_by_email(self):

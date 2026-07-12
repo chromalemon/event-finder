@@ -14,7 +14,7 @@ class CustomUser(AbstractUser):
         upload_to='avatars/',
         null=True,
         blank=True,
-        default='avatars/default.svg'  # new default path relative to MEDIA_ROOT
+        default='avatars/default.svg'
     )
     verified = models.BooleanField(default=False)
 
