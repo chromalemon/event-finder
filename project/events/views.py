@@ -4,7 +4,6 @@ from .models import Event, EventAttendee, Category
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from math import radians, cos, sin, asin, sqrt
-from django.utils.timezone import now
 from datetime import datetime
 from django.core.paginator import Paginator
 from django.contrib import messages
@@ -20,42 +19,56 @@ from django.db.models import Count
 def create_event(request):
     if request.method == "POST":
         form = BaseEventForm(request.POST, request.FILES)
-        if form.is_valid(): # add event to database
+        if form.is_valid():  # add event to database
             event = form.save(commit=True, host=request.user)
             messages.success(request, "Event created.")
-            return redirect('events:view_event', event_id=event.pk)
+            return redirect("events:view_event", event_id=event.pk)
     else:
         form = BaseEventForm()
-    return render(request, "events/create_event.html", {"form": form, "context": "create"})
+    return render(
+        request,
+        "events/create_event.html",
+        {"form": form, "context": "create"},
+    )
+
 
 def edit_event(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
     if request.user != event.host and not request.user.is_staff:
         messages.error(request, "No permission to edit.")
-        return redirect('events:view_event', event_id=event_id)
+        return redirect("events:view_event", event_id=event_id)
 
     initial = {}
     if event.location:
-        initial.update({
-            "formatted_address": event.location.formatted_address,
-            "lat": event.location.lat,
-            "long": event.location.long,
-            "city": event.location.city,
-            "country": event.location.country,
-            "postcode": event.location.postcode,
-        })
-    initial["categories"] = ", ".join(ec.cat.name for ec in event.event_categories.all())
+        initial.update(
+            {
+                "formatted_address": event.location.formatted_address,
+                "lat": event.location.lat,
+                "long": event.location.long,
+                "city": event.location.city,
+                "country": event.location.country,
+                "postcode": event.location.postcode,
+            }
+        )
+    initial["categories"] = ", ".join(
+        ec.cat.name for ec in event.event_categories.all()
+    )
 
     if request.method == "POST":
         form = BaseEventForm(request.POST, request.FILES, instance=event)
         if form.is_valid():
             form.save(commit=True)
             messages.success(request, "Event updated.")
-            return redirect('events:view_event', event_id=event.pk)
+            return redirect("events:view_event", event_id=event.pk)
     else:
         form = BaseEventForm(instance=event, initial=initial)
 
-    return render(request, "events/create_event.html", {"form": form, "context": "edit", "event": event})
+    return render(
+        request,
+        "events/create_event.html",
+        {"form": form, "context": "edit", "event": event},
+    )
+
 
 def view_events(request):
     # fetch all events initially
@@ -67,76 +80,88 @@ def view_events(request):
     )
 
     # fetch filter/sort params and apply them
-    query = request.GET.get('q', '') 
-    city_filter = request.GET.get('city', '')
-    country_filter = request.GET.get('country', '') 
-    category_filters = request.GET.getlist('category')
-    start_date = request.GET.get('start_date', '')
-    end_date = request.GET.get('end_date', '')
-    sort_order = request.GET.get('sort', 'date_asc')
+    query = request.GET.get("q", "")
+    city_filter = request.GET.get("city", "")
+    country_filter = request.GET.get("country", "")
+    category_filters = request.GET.getlist("category")
+    start_date = request.GET.get("start_date", "")
+    end_date = request.GET.get("end_date", "")
+    sort_order = request.GET.get("sort", "date_asc")
 
     if query:
-        events = events.filter(Q(title__icontains=query) | Q(location__formatted_address__icontains=query))
+        events = events.filter(
+            Q(title__icontains=query)
+            | Q(location__formatted_address__icontains=query)
+        )
     if city_filter:
         events = events.filter(location__city__icontains=city_filter)
     if country_filter:
         events = events.filter(location__country__icontains=country_filter)
     if category_filters:
-        events = events.filter(event_categories__cat__name__in=category_filters).distinct()
+        events = events.filter(
+            event_categories__cat__name__in=category_filters
+        ).distinct()
     if start_date:
         try:
-            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
             events = events.filter(start_time__gte=start_dt)
         except ValueError:
             pass
     if end_date:
         try:
-            end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
             events = events.filter(end_time__lte=end_dt)
         except ValueError:
             pass
-    if sort_order == 'date_desc':
-        events = events.order_by('-start_time')
-    elif sort_order == 'title_asc':
-        events = events.order_by('title', 'start_time')
-    elif sort_order == 'title_desc':
-        events = events.order_by('-title', 'start_time')
+    if sort_order == "date_desc":
+        events = events.order_by("-start_time")
+    elif sort_order == "title_asc":
+        events = events.order_by("title", "start_time")
+    elif sort_order == "title_desc":
+        events = events.order_by("-title", "start_time")
     else:
-        events = events.order_by('start_time')
+        events = events.order_by("start_time")
 
     categories = Category.objects.all()
     paginator = Paginator(events, 10)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
     context = {
-        'events': page_obj,
-        'query': query,
-        'city_filter': city_filter,
-        'country_filter': country_filter,
-        'category_filters': category_filters,
-        'start_date': start_date,
-        'end_date': end_date,
-        'categories': categories,
-        'sort_order': sort_order,
-        'paginator': paginator,
-        'page_obj': page_obj,
+        "events": page_obj,
+        "query": query,
+        "city_filter": city_filter,
+        "country_filter": country_filter,
+        "category_filters": category_filters,
+        "start_date": start_date,
+        "end_date": end_date,
+        "categories": categories,
+        "sort_order": sort_order,
+        "paginator": paginator,
+        "page_obj": page_obj,
     }
     return render(request, "events/view_events.html", context)
 
+
 def view_event(request, event_id):
-    event = get_object_or_404(Event.objects.select_related("host", "location"), pk=event_id)
+    event = get_object_or_404(
+        Event.objects.select_related("host", "location"), pk=event_id
+    )
 
     # visitor attendee record (if any)
     user_attendee = None
     if request.user.is_authenticated:
-        user_attendee = EventAttendee.objects.filter(event=event, user=request.user).first()
+        user_attendee = EventAttendee.objects.filter(
+            event=event, user=request.user
+        ).first()
 
     # waitlisted users for host (kept as before)
     waitlisted_users = []
     attendees_for_host = []
     if request.user == event.host:
-        qs = EventAttendee.objects.filter(event=event, status="waitlist").select_related("user")
+        qs = EventAttendee.objects.filter(
+            event=event, status="waitlist"
+        ).select_related("user")
         # order by join timestamp if available, otherwise fallback to pk
         try:
             qs = qs.order_by("joined_at")
@@ -145,31 +170,38 @@ def view_event(request, event_id):
         waitlisted_users = list(qs[:5])
 
         attendees_for_host = (
-            EventAttendee.objects.filter(event=event).select_related("user").order_by("joined_at")
+            EventAttendee.objects.filter(event=event)
+            .select_related("user")
+            .order_by("joined_at")
         )
-    going_count = EventAttendee.objects.filter(event=event, status='going').count()
+    going_count = EventAttendee.objects.filter(
+        event=event, status="going"
+    ).count()
 
-    return render(request, "events/view_event.html", {
-        "event": event,
-        "user_attendee": user_attendee,
-        "waitlisted_users": waitlisted_users,
-        "attendees_for_host": attendees_for_host,
-        "going_count": going_count,
-    })
+    return render(
+        request,
+        "events/view_event.html",
+        {
+            "event": event,
+            "user_attendee": user_attendee,
+            "waitlisted_users": waitlisted_users,
+            "attendees_for_host": attendees_for_host,
+            "going_count": going_count,
+        },
+    )
+
 
 @require_POST
 @login_required
 def change_attendee_status(request, event_id):
     """
     Host-only endpoint to change an attendee's status or remove them.
-    Expects POST params:
-      - attendee_id: EventAttendee.pk
-      - action: one of "set_status" or "remove"
-      - status: (when action=="set_status") one of allowed statuses ('going','waitlist','not_going')
     """
     event = get_object_or_404(Event, pk=event_id)
     if request.user != event.host:
-        return HttpResponseForbidden("Only the event host can manage attendees.")
+        return HttpResponseForbidden(
+            "Only the event host can manage attendees."
+        )
 
     attendee_id = request.POST.get("attendee_id")
     if not attendee_id:
@@ -178,10 +210,14 @@ def change_attendee_status(request, event_id):
 
     attendee = get_object_or_404(EventAttendee, pk=attendee_id, event=event)
 
-    action = request.POST.get("action") or request.POST.get("status")  # support simple forms
-    if action == "remove": # remove attendee record
+    action = request.POST.get("action") or request.POST.get(
+        "status"
+    )  # support simple forms
+    if action == "remove":  # remove attendee record
         attendee.delete()
-        messages.success(request, f"Removed {attendee.user.username} from the event.")
+        messages.success(
+            request, f"Removed {attendee.user.username} from the event."
+        )
         return redirect("events:view_event", event_id=event.pk)
 
     # treat action value as desired status when appropriate
@@ -191,14 +227,22 @@ def change_attendee_status(request, event_id):
         messages.error(request, "Invalid status.")
         return redirect("events:view_event", event_id=event.pk)
     if desired_status == "going":
-        going_count = EventAttendee.objects.filter(event=event, status='going').count()
+        going_count = EventAttendee.objects.filter(
+            event=event, status="going"
+        ).count()
         if going_count >= event.capacity:
-            messages.error(request, "Cannot set status to 'going': event is at full capacity.")
+            messages.error(
+                request,
+                "Cannot set status to 'going': event is at full capacity.",
+            )
             return redirect("events:view_event", event_id=event.pk)
     attendee.status = desired_status
     attendee.save()
-    messages.success(request, f"Set {attendee.user.username} status to {desired_status}.")
+    messages.success(
+        request, f"Set {attendee.user.username} status to {desired_status}."
+    )
     return redirect("events:view_event", event_id=event.pk)
+
 
 @login_required
 @require_POST
@@ -214,69 +258,91 @@ def join_event(request, event_id):
     if att:
         if att.status == "banned":
             messages.error(request, "Access denied.")
-            return redirect('events:view_event', event_id=event_id)
+            return redirect("events:view_event", event_id=event_id)
         if att.status == "going":
             messages.info(request, "You are already attending this event.")
-            return redirect('events:view_event', event_id=event_id)
+            return redirect("events:view_event", event_id=event_id)
         if att.status == "waitlist":
-            messages.info(request, "You are already on the waitlist for this event.")
-            return redirect('events:view_event', event_id=event_id)
+            messages.info(
+                request, "You are already on the waitlist for this event."
+            )
+            return redirect("events:view_event", event_id=event_id)
         # status == 'not_going' should fall through and attempt to join
 
-    with transaction.atomic(): # ensure atomic update to avoid race conditions
+    with transaction.atomic():  # ensure atomic update to avoid race conditions
         locked_event = Event.objects.select_for_update().get(pk=event.pk)
-        going_count = EventAttendee.objects.filter(event=locked_event, status='going').count()
-        capacity = getattr(locked_event, 'capacity', None)
+        going_count = EventAttendee.objects.filter(
+            event=locked_event, status="going"
+        ).count()
+        capacity = getattr(locked_event, "capacity", None)
 
         if capacity is not None and going_count >= capacity:
             attendee, created = EventAttendee.objects.get_or_create(
                 event=locked_event,
                 user=request.user,
-                defaults={'status': 'waitlist'}
+                defaults={"status": "waitlist"},
             )
             if not created:
-                attendee.status = 'waitlist'
+                attendee.status = "waitlist"
                 attendee.save()
-            messages.info(request, "The event is full — you've been added to the waitlist.")
+            messages.info(
+                request,
+                "The event is full — you've been added to the waitlist.",
+            )
         else:
             attendee, created = EventAttendee.objects.get_or_create(
                 event=locked_event,
                 user=request.user,
-                defaults={'status': 'going'}
+                defaults={"status": "going"},
             )
             if not created:
-                attendee.status = 'going'
+                attendee.status = "going"
                 attendee.save()
             messages.success(request, "You have joined the event.")
 
-    return redirect('events:view_event', event_id=event_id)
+    return redirect("events:view_event", event_id=event_id)
+
 
 @login_required
 @require_POST
 def leave_event(request, event_id):
-    
+
     event = get_object_or_404(Event, pk=event_id)
-            
+
     try:
         with transaction.atomic():
-            attendee = EventAttendee.objects.select_for_update().get(event=event, user=request.user)
+            attendee = EventAttendee.objects.select_for_update().get(
+                event=event, user=request.user
+            )
             attendee.status = "not_going"
             attendee.save()
-            first_waitlisted = EventAttendee.objects.filter(event=event, status="waitlist").first()
+            first_waitlisted = EventAttendee.objects.filter(
+                event=event, status="waitlist"
+            ).first()
         if first_waitlisted:
             first_waitlisted.status = "going"
             first_waitlisted.save()
         messages.success(request, "You have left the event")
 
     except EventAttendee.DoesNotExist:
-        EventAttendee.objects.create(event=event, user=request.user, status='not_going')
-        messages.info(request, "You are not listed as attending; marked as not going.")
+        EventAttendee.objects.create(
+            event=event, user=request.user, status="not_going"
+        )
+        messages.info(
+            request, "You are not listed as attending; marked as not going."
+        )
 
-    return redirect('events:view_event', event_id=event_id)
+    return redirect("events:view_event", event_id=event_id)
 
-def haversine(lat1, lon1, lat2, lon2): # helper function to calculate distance between two lat/long points
+
+def haversine(
+    lat1, lon1, lat2, lon2
+):  # helper function to calculate distance between two lat/long points
     R = 6371
     dlat = radians(lat2 - lat1)
     dlon = radians(lon2 - lon1)
-    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+    a = (
+        sin(dlat / 2) ** 2
+        + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+    )
     return R * 2 * asin(sqrt(a))

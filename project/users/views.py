@@ -1,8 +1,11 @@
 from django.shortcuts import render
 from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404
-from django.http import HttpResponse
-from django.contrib.auth import login as auth_login, logout as auth_logout, get_user_model
+from django.contrib.auth import (
+    login as auth_login,
+    logout as auth_logout,
+    get_user_model,
+)
 from django.contrib.auth.decorators import login_required
 from users.forms import CustomUserRegisterForm, CustomUserLoginForm
 from .forms import UserProfileEditForm
@@ -12,6 +15,7 @@ from django.db.models import Q
 
 User = get_user_model()
 
+
 def register(request):
     if request.user.is_authenticated:
         return redirect("dashboard")
@@ -20,12 +24,13 @@ def register(request):
         if form.is_valid():
             user = form.save()
             auth_login(request, user)
-            messages.success(request, 'Registration successful!')
-            return redirect('dashboard')
+            messages.success(request, "Registration successful!")
+            return redirect("dashboard")
     else:
         form = CustomUserRegisterForm()
-    return render(request, 'users/register.html', {'form': form})
-    
+    return render(request, "users/register.html", {"form": form})
+
+
 def login(request):
     if request.user.is_authenticated:
         return redirect("dashboard")
@@ -34,44 +39,57 @@ def login(request):
         if form.is_valid():
             user = form.get_user()
             auth_login(request, user)
-            messages.success(request, 'Login successful!')
-            return redirect('dashboard')
+            messages.success(request, "Login successful!")
+            return redirect("dashboard")
     else:
         form = CustomUserLoginForm()
-    return render(request, 'users/login.html', {'form': form})
+    return render(request, "users/login.html", {"form": form})
+
 
 @login_required
 def logout(request):
     auth_logout(request)
     return redirect("home")
 
+
 @login_required
 def profile(request, user_id=None):
     user = request.user
     if user_id is None or user_id == user.id:
-        return render(request, "users/view_profile.html", {"user": user, "own": True})
+        return render(
+            request, "users/view_profile.html", {"user": user, "own": True}
+        )
     user = get_object_or_404(User, id=user_id)
-    return render(request, "users/view_profile.html", {"user": user, "own": False})
-    
+    return render(
+        request, "users/view_profile.html", {"user": user, "own": False}
+    )
+
+
 @login_required
 def profile_search(request):
     user = None
 
-    query = request.GET.get('q', '')
+    query = request.GET.get("q", "")
     if query:
-        user = User.objects.filter(Q(username__iexact=query) | Q(email__iexact=query)).first()
+        user = User.objects.filter(
+            Q(username__iexact=query) | Q(email__iexact=query)
+        ).first()
 
-    return render(request, "users/search_profile.html", {"user": user, "query": query})
+    return render(
+        request, "users/search_profile.html", {"user": user, "query": query}
+    )
+
 
 @login_required
 def profile_edit(request):
     if request.method == "POST":
-        form = UserProfileEditForm(request.POST, request.FILES, instance=request.user)
+        form = UserProfileEditForm(
+            request.POST, request.FILES, instance=request.user
+        )
         if form.is_valid():
             form.save()
             messages.success(request, "Profile updated.")
-            return redirect('profile')
+            return redirect("profile")
     else:
         form = UserProfileEditForm(instance=request.user)
     return render(request, "users/edit_profile.html", {"form": form})
-

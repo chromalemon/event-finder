@@ -3,9 +3,11 @@ from django.contrib.auth.decorators import login_required
 from events.models import Event, EventAttendee
 from django.db.models import Q
 
+
 def index(request):
     """
-    View for the chat index page. Displays a list of events the user is hosting or attending.
+    View for the chat index page.
+    Displays a list of events the user is hosting or attending.
     """
     user = request.user if request.user.is_authenticated else None
 
@@ -14,7 +16,8 @@ def index(request):
     else:
         events = (
             Event.objects.filter(
-                Q(host=user) | Q(attendees__user=user, attendees__status="going")
+                Q(host=user)
+                | Q(attendees__user=user, attendees__status="going")
             )
             .select_related("host", "location")
             .distinct()
@@ -23,15 +26,21 @@ def index(request):
 
     return render(request, "chat/home.html", {"events": events})
 
+
 @login_required
 def chat_room(request, event_id):
     """
-    View for the chat room of a specific event. Only accessible to the event host or attendees with 'going' status.
+    View for the chat room of a specific event.
+    Only accessible to the event host or attendees with 'going' status.
     """
-    event = get_object_or_404(Event.objects.select_related("host", "location"), pk=event_id)
+    event = get_object_or_404(
+        Event.objects.select_related("host", "location"), pk=event_id
+    )
 
     is_host = request.user.pk == event.host_id
-    is_attendee_going = EventAttendee.objects.filter(event=event, user=request.user, status="going").exists()
+    is_attendee_going = EventAttendee.objects.filter(
+        event=event, user=request.user, status="going"
+    ).exists()
 
     if not (is_host or is_attendee_going):
         return render(request, "chat/forbidden.html", {"event": event})

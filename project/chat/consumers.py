@@ -3,21 +3,25 @@ from channels.db import database_sync_to_async
 import json
 from django.utils import timezone
 
+
 class EventChatConsumer(AsyncWebsocketConsumer):
     """
-    WebSocket consumer for handling chat messages. 
+    WebSocket consumer for handling chat messages.
     """
+
     async def connect(self):
         """
         Connect to the WebSocket.
         """
-        self.event_id = self.scope['url_route']['kwargs'].get('event_id')
+        self.event_id = self.scope["url_route"]["kwargs"].get("event_id")
         if not self.event_id:
             await self.close()
             return
 
         try:
-            ok = await self._user_is_allowed(self.scope.get("user"), self.event_id)
+            ok = await self._user_is_allowed(
+                self.scope.get("user"), self.event_id
+            )
         except Exception:
             await self.close()
             return
@@ -33,7 +37,9 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         # send recent messages
         try:
             recent = await self._get_recent_messages(self.event_id, limit=50)
-            await self.send(text_data=json.dumps({"type": "history", "messages": recent}))
+            await self.send(
+                text_data=json.dumps({"type": "history", "messages": recent})
+            )
         except Exception:
             pass
 
@@ -42,7 +48,9 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         Disconnect from the WebSocket and remove from the group.
         """
         try:
-            await self.channel_layer.group_discard(self.group_name, self.channel_name)
+            await self.channel_layer.group_discard(
+                self.group_name, self.channel_name
+            )
         except Exception:
             pass
 
@@ -67,7 +75,11 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         payload = {
             "type": "chat.message",
             "message": message,
-            "username": getattr(user, "username", "anon") if (user and getattr(user, "is_authenticated", False)) else "anon",
+            "username": (
+                getattr(user, "username", "anon")
+                if (user and getattr(user, "is_authenticated", False))
+                else "anon"
+            ),
         }
         if saved_meta and isinstance(saved_meta, dict):
             payload.update(saved_meta)
@@ -80,13 +92,17 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         """
         Handle a chat message event.
         """
-        await self.send(text_data=json.dumps({
-            "type": "message",
-            "message": event.get("message"),
-            "username": event.get("username"),
-            "timestamp": event.get("timestamp"),
-            "id": event.get("id"),
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "message",
+                    "message": event.get("message"),
+                    "username": event.get("username"),
+                    "timestamp": event.get("timestamp"),
+                    "id": event.get("id"),
+                }
+            )
+        )
 
     @database_sync_to_async
     def _user_is_allowed(self, user, event_id):
@@ -94,22 +110,30 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         Check if the user is allowed to access the chat for the given event.
         """
         from events.models import Event, EventAttendee
+
         try:
             event = Event.objects.get(pk=event_id)
         except Event.DoesNotExist:
             return False
-        if user and getattr(user, "is_authenticated", False) and event.host_id == getattr(user, "pk", None):
+        if (
+            user
+            and getattr(user, "is_authenticated", False)
+            and event.host_id == getattr(user, "pk", None)
+        ):
             return True
-        return EventAttendee.objects.filter(event=event, user=user, status="going").exists()
+        return EventAttendee.objects.filter(
+            event=event, user=user, status="going"
+        ).exists()
 
     @database_sync_to_async
     def _save_message(self, event_id, user, message_text):
         """
-        Save a chat message to the database and return metadata about the saved message.
+        Save a chat message to the database
+        and return metadata about the saved message.
         """
         from .models import ChatMessage
 
-        kwargs = {}                
+        kwargs = {}
 
         if not (user and getattr(user, "is_authenticated", False)):
             return None
@@ -123,7 +147,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
 
         val = getattr(msg, "sent_at")
         meta["timestamp"] = val.isoformat() if val else None
-        
+
         return meta
 
     @database_sync_to_async
@@ -144,5 +168,12 @@ class EventChatConsumer(AsyncWebsocketConsumer):
             val = getattr(m, "sent_at")
             ts = val.isoformat() if val else None
 
-            out.append({"username": username, "message": content, "timestamp": ts, "id": getattr(m, "pk", None)})
+            out.append(
+                {
+                    "username": username,
+                    "message": content,
+                    "timestamp": ts,
+                    "id": getattr(m, "pk", None),
+                }
+            )
         return out

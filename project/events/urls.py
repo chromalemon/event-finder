@@ -10,5 +10,9 @@ urlpatterns = [
     path("join/<int:event_id>/", views.join_event, name="join_event"),
     path("leave/<int:event_id>/", views.leave_event, name="leave_event"),
     path("", views.view_events, name="view_events"),
-    path("<int:event_id>/attendee/change/", views.change_attendee_status, name="change_attendee_status"),
+    path(
+        "<int:event_id>/attendee/change/",
+        views.change_attendee_status,
+        name="change_attendee_status",
+    ),
 ]
