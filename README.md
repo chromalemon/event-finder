@@ -1,4 +1,5 @@
 [![Tests](https://github.com/chromalemon/event-finder/actions/workflows/django.yml/badge.svg)](https://github.com/chromalemon/event-finder/actions/workflows/django.yml)
+[![Ruff Format and Lint](https://github.com/chromalemon/event-finder/actions/workflows/ruff.yml/badge.svg)](https://github.com/chromalemon/event-finder/actions/workflows/ruff.yml)
 
 # Event Finder Overview
 
