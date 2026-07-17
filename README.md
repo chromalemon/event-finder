@@ -1,3 +1,5 @@
+[![Tests](https://github.com/chromalemon/event-finder/actions/workflows/django.yml/badge.svg)](https://github.com/chromalemon/event-finder/actions/workflows/django.yml)
+
 # Event Finder Overview
 
 **Event Finder** is a full-stack Django web application that enables users to discover, create and manage events, with integrated real-time group chats using Django Channels and WebSockets.
