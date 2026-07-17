@@ -78,12 +78,6 @@ Start the application:
 ./run.sh
 ```
 
-Run the test suite:
-
-```bash
-./test.sh
-```
-
 The application will then be available at:
 
 ```
@@ -97,9 +91,6 @@ When you are finished:
 ```bash
 docker compose down
 ```
-
-> [!TIP]
-> Redis runs as part of the compose stack, so `./setup.sh` and `./run.sh` manage it for you.
 
 ## Local Environment
 
