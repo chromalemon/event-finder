@@ -2,29 +2,100 @@ name: Django CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.12]
+    
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: test_django_db
+          POSTGRES_USER: test_django_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-        
-    - name: Run Tests
-      run: docker compose run --rm web python manage.py test
-      
-    - name: Cleanup
-      if: always()
-      run: docker compose down -v
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -U test_django_user; do
+            echo "Waiting for postgres..."
+            sleep 1
+          done
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgresql://test_django_user:test_password@localhost:5432/test_django_db
+          DEBUG: "False"
+          DJANGO_SECRET_KEY: "test-secret-key-for-ci"
+          REDIS_URL: "redis://localhost:6379/0"
+        run: |
+          cd project
+          python manage.py migrate
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql://test_django_user:test_password@localhost:5432/test_django_db
+          DEBUG: "False"
+          DJANGO_SECRET_KEY: "test-secret-key-for-ci"
+          REDIS_URL: "redis://localhost:6379/0"
+        run: |
+          cd project
+          python manage.py test --no-header --verbosity=2
+
+      - name: Run collectstatic
+        env:
+          DEBUG: "False"
+          DJANGO_SECRET_KEY: "test-secret-key-for-ci"
+          REDIS_URL: "redis://localhost:6379/0"
+        run: |
+          cd project
+          python manage.py collectstatic --noinput
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: project/
+          retention-days: 1
+        continue-on-error: true
