@@ -80,7 +80,7 @@ jobs:
           REDIS_URL: "redis://localhost:6379/0"
         run: |
           cd project
-          python manage.py test --noinput -header --verbosity=2
+          python manage.py test --noinput --verbosity=2
 
       - name: Run collectstatic
         env:
