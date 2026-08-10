@@ -7,3 +7,18 @@ line-length = 79
 # overlap with the use of a formatter, like Black, but we can override this behavior by
 # explicitly adding the rule.
 extend-select = ["E501"]
+
+[dependency-groups]
+dev = [
+    "channels==4.3.1",
+    "channels-redis==4.3.0",
+    "dj-database-url==2.1.0",
+    "django==6.0.6",
+    "pillow==12.3.0",
+    "psycopg2-binary>=2.9.12",
+    "python-dotenv==1.2.2",
+    "redis==7.0.1",
+    "uvicorn==0.38.0",
+    "websockets==15.0.1",
+    "whitenoise==6.8.2",
+]
