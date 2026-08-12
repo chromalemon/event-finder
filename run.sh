@@ -33,6 +33,12 @@ else
   echo ".env file already exists. Skipping creation."
 fi
 
+if [ -f .env ]; then
+  set -a
+  source .env
+  set +a
+fi
+
 echo "Resetting any stale Docker containers..."
 docker compose down --remove-orphans --volumes >/dev/null 2>&1 || true
 
@@ -48,15 +54,16 @@ sleep 5
 echo "Applying database migrations..."
 docker compose exec -T web sh -c "cd /app/project && python manage.py migrate --noinput"
 
-echo "Collecting static files..."
-docker compose exec -T web sh -c "cd /app/project && python manage.py collectstatic --noinput"
+if [ "${DEBUG,,}" = "false" ]; then
+    echo "Collecting static files..."
+    docker compose exec -T web sh -c "cd /app/project && python manage.py collectstatic --noinput"
+fi
 
 echo
 echo "✓ Setup complete!"
 echo
 echo "✓ Application started successfully!"
 echo "  Access at: http://localhost:8000"
-echo "  Static files collected to: /app/project/staticfiles/"
 echo
 echo "View logs with:"
 echo "  docker compose logs -f"

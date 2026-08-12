@@ -1,4 +1,4 @@
-name: Ruff Format and Lint
+name: Lint
 
 on:
   push:
@@ -13,12 +13,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Run Ruff Linter
+      - name: Run Ruff checks
         uses: astral-sh/ruff-action@v1
         with:
-          args: "check --respect-gitignore"
-
-      - name: Run Ruff Formatter Check
-        uses: astral-sh/ruff-action@v1
-        with:
-          args: "format --check --respect-gitignore"
+          args: "check format --respect-gitignore"
