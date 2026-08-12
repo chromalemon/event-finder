@@ -47,6 +47,7 @@
 - JavaScript
 - HTML/CSS
 - Docker
+- PostgreSQL
 - Redis
 
 ## Prerequisites
@@ -63,19 +64,13 @@ git clone https://github.com/chromalemon/event-finder
 cd event-finder 
 ```
 
-Make the scripts executable:
+Make the setup script executable:
 
 ```bash
-chmod +x setup.sh run.sh test.sh
+chmod +x run.sh
 ```
 
-Run the setup script:
-
-```bash
-./setup.sh
-```
-
-Start the application:
+Setup and start the application:
 
 ```bash
 ./run.sh
