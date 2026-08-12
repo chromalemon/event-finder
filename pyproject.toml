@@ -8,7 +8,7 @@ exclude = ["**/migrations/*"]
 # overlap with the use of a formatter, like Black, but we can override this behavior by
 # explicitly adding the rule.
 extend-select = ["E501"]
-ignore = ["RUF012"]
+ignore = ["RUF012", "EXE001"]
 
 [dependency-groups]
 dev = [
