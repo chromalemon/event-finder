@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.conf import settings
 
 
 class LoginRequiredMiddleware:
@@ -18,9 +18,8 @@ class LoginRequiredMiddleware:
             self.exempt_urls.append("/admin/")
 
     def __call__(self, request):
-        if not request.user.is_authenticated:
-            if not any(
+        if not request.user.is_authenticated and not any(
                 request.path.startswith(url) for url in self.exempt_urls
             ):
-                return redirect("home")
+            return redirect("home")
         return self.get_response(request)

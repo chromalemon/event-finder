@@ -1,8 +1,8 @@
-from django.test import TestCase
 from django.contrib.auth import get_user_model
-from events.models import Event, EventAttendee
-from django.utils import timezone
+from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
+from events.models import Event, EventAttendee
 
 
 class ChatTests(TestCase):

@@ -1,6 +1,7 @@
 from django import forms
-from .models import Event, Location, Category, EventCategory, EventAttendee
 from django.utils import timezone
+
+from .models import Category, Event, EventAttendee, EventCategory, Location
 
 
 class BaseEventForm(forms.ModelForm):

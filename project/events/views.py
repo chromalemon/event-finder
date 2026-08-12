@@ -1,16 +1,19 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from .forms import BaseEventForm
-from .models import Event, EventAttendee, Category
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from math import radians, cos, sin, asin, sqrt
 from datetime import datetime
-from django.core.paginator import Paginator
+from math import asin, cos, radians, sin, sqrt
+from zoneinfo import ZoneInfo
+
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db import transaction
-from django.views.decorators.http import require_POST
+from django.db.models import Count, Q
 from django.http import HttpResponseForbidden
-from django.db.models import Count
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+
+from .forms import BaseEventForm
+from .models import Category, Event, EventAttendee
 
 # Create your views here.
 
@@ -103,13 +106,17 @@ def view_events(request):
         ).distinct()
     if start_date:
         try:
-            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d").replace(
+                    tzinfo=ZoneInfo(settings.TIME_ZONE)
+            )
             events = events.filter(start_time__gte=start_dt)
         except ValueError:
             pass
     if end_date:
         try:
-            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d").replace(
+                    tzinfo=ZoneInfo(settings.TIME_ZONE)
+            )
             events = events.filter(end_time__lte=end_dt)
         except ValueError:
             pass
@@ -163,10 +170,7 @@ def view_event(request, event_id):
             event=event, status="waitlist"
         ).select_related("user")
         # order by join timestamp if available, otherwise fallback to pk
-        try:
-            qs = qs.order_by("joined_at")
-        except Exception:
-            qs = qs.order_by("pk")
+        qs = qs.order_by("joined_at")
         waitlisted_users = list(qs[:5])
 
         attendees_for_host = (

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
@@ -214,6 +215,7 @@ if not DEBUG:
     STORAGES = {
         # ...
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": 
+                "whitenoise.storage.CompressedManifestStaticFilesStorage",
         },
     }

@@ -1,9 +1,8 @@
-from django.shortcuts import render
 from django.contrib import messages
-from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
-from events.models import Event
+from django.shortcuts import redirect, render
 from django.utils.timezone import now
+from events.models import Event
 
 
 def home(request):

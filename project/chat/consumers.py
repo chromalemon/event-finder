@@ -1,6 +1,10 @@
-from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
 from django.utils import timezone
 
 
@@ -23,6 +27,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
                 self.scope.get("user"), self.event_id
             )
         except Exception:
+            logger.exception("Failed to authenticate user")
             await self.close()
             return
 
@@ -41,7 +46,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
                 text_data=json.dumps({"type": "history", "messages": recent})
             )
         except Exception:
-            pass
+            logger.exception("Failed to load recent chat messages")
 
     async def disconnect(self, close_code):
         """
@@ -52,7 +57,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
                 self.group_name, self.channel_name
             )
         except Exception:
-            pass
+            logger.exception("Failed to disconnect from chat")
 
     async def receive(self, text_data=None, bytes_data=None):
         """
@@ -70,7 +75,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         try:
             saved_meta = await self._save_message(self.event_id, user, message)
         except Exception:
-            pass
+            logger.exception("Failed to save message")
 
         payload = {
             "type": "chat.message",
@@ -145,7 +150,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
 
         meta = {"id": getattr(msg, "pk", None)}
 
-        val = getattr(msg, "sent_at")
+        val = msg.sent_at
         meta["timestamp"] = val.isoformat() if val else None
 
         return meta
@@ -164,8 +169,8 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         for m in reversed(list(qs)):
             u = getattr(m, "user", "anon")
             username = getattr(u, "username", str(u))
-            content = getattr(m, "content")
-            val = getattr(m, "sent_at")
+            content = m.content
+            val = m.sent_at
             ts = val.isoformat() if val else None
 
             out.append(

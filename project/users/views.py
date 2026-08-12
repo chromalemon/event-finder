@@ -1,15 +1,20 @@
-from django.shortcuts import render
 from django.contrib import messages
-from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import (
-    login as auth_login,
-    logout as auth_logout,
     get_user_model,
 )
+from django.contrib.auth import (
+    login as auth_login,
+)
+from django.contrib.auth import (
+    logout as auth_logout,
+)
 from django.contrib.auth.decorators import login_required
-from users.forms import CustomUserRegisterForm, CustomUserLoginForm
-from .forms import UserProfileEditForm
 from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
+
+from users.forms import CustomUserLoginForm, CustomUserRegisterForm
+
+from .forms import UserProfileEditForm
 
 # Create your views here.
 

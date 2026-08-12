@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Event, Location, Category
+
+from .models import Category, Event, Location
 
 # Register your models here.
 

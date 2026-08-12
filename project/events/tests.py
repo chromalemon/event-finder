@@ -1,10 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from events.forms import BaseEventForm
-from events.models import Event, Location, EventAttendee
+from events.models import Event, EventAttendee, Location
 
 
 class SmokeTests(TestCase):
