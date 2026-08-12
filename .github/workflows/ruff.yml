@@ -13,7 +13,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Run Ruff checks
+      - name: Run Ruff Linter
         uses: astral-sh/ruff-action@v1
         with:
-          args: "check format --respect-gitignore"
+          args: "check --respect-gitignore"
+      - name: Run Ruff Formatter
+        uses: astral-sh/ruff-action@v1
+        with:
+          args: "format --check --respect-gitignore"
