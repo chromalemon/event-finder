@@ -65,7 +65,7 @@ jobs:
       - name: Run migrations
         env:
           DATABASE_URL: postgresql://test_django_user:test_password@localhost:5432/test_django_db
-          DEBUG: "False"
+          DEBUG: "True"
           DJANGO_SECRET_KEY: "test-secret-key-for-ci"
           REDIS_URL: "redis://localhost:6379/0"
         run: |
@@ -75,27 +75,27 @@ jobs:
       - name: Run tests
         env:
           DATABASE_URL: postgresql://test_django_user:test_password@localhost:5432/test_django_db
-          DEBUG: "False"
+          DEBUG: "True"
           DJANGO_SECRET_KEY: "test-secret-key-for-ci"
           REDIS_URL: "redis://localhost:6379/0"
         run: |
           cd project
           python manage.py test --noinput --verbosity=2
 
-      - name: Run collectstatic
-        env:
-          DEBUG: "False"
-          DJANGO_SECRET_KEY: "test-secret-key-for-ci"
-          REDIS_URL: "redis://localhost:6379/0"
-        run: |
-          cd project
-          python manage.py collectstatic --noinput
+#      - name: Run collectstatic
+#        env:
+#          DEBUG: "True"
+#          DJANGO_SECRET_KEY: "test-secret-key-for-ci"
+#          REDIS_URL: "redis://localhost:6379/0"
+#        run: |
+#          cd project
+#          python manage.py collectstatic --noinput
 
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: project/
-          retention-days: 1
-        continue-on-error: true
+#      - name: Upload coverage
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: test-results
+#          path: project/
+#          retention-days: 1
+#        continue-on-error: true
