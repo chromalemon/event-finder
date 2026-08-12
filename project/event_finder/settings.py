@@ -212,10 +212,10 @@ CSRF_COOKIE_SECURE = not DEBUG
 LOGIN_URL = "home"
 
 if not DEBUG:
+    path = "CompressedManifestStaticFilesStorage"
     STORAGES = {
         # ...
         "staticfiles": {
-            "BACKEND": 
-                "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "whitenoise.storage." + path,
         },
     }

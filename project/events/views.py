@@ -107,7 +107,7 @@ def view_events(request):
     if start_date:
         try:
             start_dt = datetime.strptime(start_date, "%Y-%m-%d").replace(
-                    tzinfo=ZoneInfo(settings.TIME_ZONE)
+                tzinfo=ZoneInfo(settings.TIME_ZONE)
             )
             events = events.filter(start_time__gte=start_dt)
         except ValueError:
@@ -115,7 +115,7 @@ def view_events(request):
     if end_date:
         try:
             end_dt = datetime.strptime(end_date, "%Y-%m-%d").replace(
-                    tzinfo=ZoneInfo(settings.TIME_ZONE)
+                tzinfo=ZoneInfo(settings.TIME_ZONE)
             )
             events = events.filter(end_time__lte=end_dt)
         except ValueError:

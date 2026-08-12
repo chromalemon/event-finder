@@ -19,7 +19,7 @@ class LoginRequiredMiddleware:
 
     def __call__(self, request):
         if not request.user.is_authenticated and not any(
-                request.path.startswith(url) for url in self.exempt_urls
-            ):
+            request.path.startswith(url) for url in self.exempt_urls
+        ):
             return redirect("home")
         return self.get_response(request)
