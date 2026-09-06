@@ -214,7 +214,9 @@ LOGIN_URL = "home"
 if not DEBUG:
     path = "CompressedManifestStaticFilesStorage"
     STORAGES = {
-        # ...
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
         "staticfiles": {
             "BACKEND": "whitenoise.storage." + path,
         },
