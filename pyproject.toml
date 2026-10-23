@@ -16,7 +16,7 @@ dev = [
     "channels-redis==4.3.0",
     "dj-database-url==2.1.0",
     "django==6.0.7",
-    "pillow==12.3.0",
+    "pillow==13.0.0",
     "psycopg2-binary>=2.9.12",
     "python-dotenv==1.2.2",
     "redis==7.0.1",
