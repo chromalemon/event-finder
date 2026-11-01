@@ -29,6 +29,7 @@ def load_result(path):
             "ratio": broadcast.get("delivery_ratio"),
             "delivery_p95": broadcast.get("delivery_latency", {}).get("p95_ms"),
             "fanout_rate": broadcast.get("delivered_fanout_events_per_second"),
+            "persistence": data.get("persistence"),
         }
 
     # Backward compatibility with the original single-publisher result schema.
@@ -55,6 +56,7 @@ def load_result(path):
         "ratio": broadcast.get("delivery_ratio"),
         "delivery_p95": broadcast.get("delivery_latency", {}).get("p95_ms"),
         "fanout_rate": None,
+        "persistence": data.get("persistence"),
     }
 
 
@@ -155,8 +157,28 @@ def main():
             f"p95 {fmt(best_broadcast['delivery_p95'], ' ms')}) using Redis."
         )
         lines.append("")
+        persisted = [
+            row for row in rows
+            if row["persistence"]
+            and row["persistence"].get("messages_published", 0) > 0
+            and row["persistence"].get("missing_messages") == 0
+            and row["persistence"].get("duplicate_database_rows") == 0
+        ]
+        if persisted:
+            best_persisted = max(
+                persisted,
+                key=lambda row: row["persistence"]["messages_persisted"],
+            )
+            lines.append(
+                f"- Database verification confirmed persistence of "
+                f"{best_persisted['persistence']['messages_persisted']} / "
+                f"{best_persisted['persistence']['messages_published']} "
+                f"published chat messages, with no missing messages or "
+                f"duplicate database rows."
+            )
+        lines.append("")
         lines.append(
-            "Use this bullet only with the workload and environment clearly "
+            "Use these bullets only with the workload and environment clearly "
             "understood; retain the JSON files as supporting evidence."
         )
     else:
