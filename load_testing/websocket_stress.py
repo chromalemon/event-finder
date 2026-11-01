@@ -70,10 +70,10 @@ async def run(args):
                 ping_timeout=20,
                 max_size=2**20,
             ) as ws:
-                connect_ms.append((time.perf_counter() - started) * 1000)
                 sockets[index] = ws
-                # Consumer sends a history frame immediately after accepting.
+                # Include the consumer's initial history frame in setup latency.
                 first = await asyncio.wait_for(ws.recv(), timeout=args.open_timeout)
+                connect_ms.append((time.perf_counter() - started) * 1000)
                 first_data = json.loads(first)
                 if first_data.get("type") != "history":
                     outcomes["unexpected_initial_frame"] += 1
