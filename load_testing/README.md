@@ -163,3 +163,25 @@ CV bullet only when the supplied evidence supports it. Keep the original JSON
 files as supporting benchmark data. The generated bullet must describe the
 tested workload accurately; do not present a local benchmark as production
 capacity or claim sustained throughput from a short burst test.
+
+
+## 8. Verify database persistence
+
+The chat consumer broadcasts even if its database save raises an exception.
+Consequently, successful WebSocket delivery alone does **not** prove messages
+were persisted. The stress harness records every successfully published
+unique marker. Verify those markers against PostgreSQL from inside the web
+container after the concurrent-publisher test:
+
+```bash
+docker compose exec web python /app/load_testing/verify_chat_persistence.py \
+    --results /app/load_testing/concurrent-500x10.json
+```
+
+The verifier checks the exact event and published message contents, reports
+missing messages and duplicate database rows, and adds a `persistence`
+section to the same JSON result. This closes an important gap between
+real-time fan-out and durable chat-message storage.
+
+Regenerate the Markdown report after persistence verification so the CV
+evidence includes database persistence only when it has actually been checked.
