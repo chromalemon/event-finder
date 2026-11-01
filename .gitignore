@@ -179,3 +179,8 @@ cython_debug/
 staticfiles/
 static_root/
 /staticfiles/
+
+# WebSocket load-test credentials and generated reports
+load_testing/sessions.json
+load_testing/results-*.json
+load_testing/broadcast-*.json
