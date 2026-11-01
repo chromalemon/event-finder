@@ -217,6 +217,7 @@ async def run(args):
     publish_seconds = (publish_duration_ms or 0) / 1000
 
     report = {
+        "event_id": data["event_id"],
         "test": {
             "target_connections": args.connections,
             "duration_seconds": args.duration,
@@ -267,6 +268,10 @@ async def run(args):
             ),
             "deliveries_per_client": distribution(per_client_counts),
             "publish_errors": publish_errors,
+            "published_message_markers": [
+                marker for marker in sent_at
+                if marker.startswith("loadtest:")
+            ],
         },
         "sample_errors": unexpected[:20],
     }
