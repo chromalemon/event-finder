@@ -50,8 +50,6 @@ async def run(args):
     active = []
     unexpected = []
     delivery_ms = []
-    ready = asyncio.Event()
-    start_gate = asyncio.Event()
     expected_messages = args.messages
     received_counts = [0] * len(users)
     sent_at = {}
@@ -60,8 +58,10 @@ async def run(args):
 
     async def worker(index, user):
         cookie = f"sessionid={user['sessionid']}"
-        await start_gate.wait()
+        if args.ramp_up:
+            await asyncio.sleep(index * args.ramp_up / args.connections)
         started = time.perf_counter()
+        connected = False
         try:
             async with connect(
                 uri,
@@ -80,8 +80,8 @@ async def run(args):
                 if first_data.get("type") != "history":
                     outcomes["unexpected_initial_frame"] += 1
                 outcomes["connected"] += 1
+                connected = True
                 active.append(index)
-                ready.set()
 
                 while True:
                     raw = await ws.recv()
@@ -98,7 +98,7 @@ async def run(args):
         except asyncio.TimeoutError:
             outcomes["timeout"] += 1
         except ConnectionClosed as exc:
-            if not ready.is_set() or args.duration > 0:
+            if connected:
                 unexpected.append({"user": user["username"], "code": exc.code})
                 outcomes["closed"] += 1
         except Exception as exc:
@@ -107,11 +107,7 @@ async def run(args):
                 unexpected.append({"user": user["username"], "error": repr(exc)})
 
     tasks = [asyncio.create_task(worker(i, user)) for i, user in enumerate(users)]
-    ramp_delay = args.ramp_up / max(args.connections, 1)
-    start_gate.set()
-
-    # Stagger task starts by delaying each worker's start through per-task gates
-    # would add complexity; this ramp controls the overall connection launch.
+    # Allow staggered connection attempts to complete before the idle hold.
     if args.ramp_up:
         await asyncio.sleep(args.ramp_up)
     else:
