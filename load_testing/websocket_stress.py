@@ -47,13 +47,11 @@ async def run(args):
     uri = args.url.rstrip("/") + data["websocket_path"]
     outcomes = Counter()
     connect_ms = []
-    active = []
+    active = set()
     unexpected = []
     delivery_ms = []
-    expected_messages = args.messages
     received_counts = [0] * len(users)
     sent_at = {}
-    receiver_tasks = []
     sockets = [None] * len(users)
 
     async def worker(index, user):
@@ -81,7 +79,7 @@ async def run(args):
                     outcomes["unexpected_initial_frame"] += 1
                 outcomes["connected"] += 1
                 connected = True
-                active.append(index)
+                active.add(index)
 
                 while True:
                     raw = await ws.recv()
@@ -105,6 +103,8 @@ async def run(args):
             outcomes["error"] += 1
             if len(unexpected) < 20:
                 unexpected.append({"user": user["username"], "error": repr(exc)})
+        finally:
+            active.discard(index)
 
     tasks = [asyncio.create_task(worker(i, user)) for i, user in enumerate(users)]
     # Allow staggered connection attempts to complete before the idle hold.
@@ -120,7 +120,7 @@ async def run(args):
     # Optional broadcast phase: one client sends unique markers; every connected
     # client should receive each marker through the shared Redis group.
     if args.messages and active:
-        publisher = sockets[active[0]]
+        publisher = sockets[min(active)]
         if publisher is not None:
             for sequence in range(args.messages):
                 marker = f"loadtest:{uuid.uuid4().hex}:{sequence}"
@@ -134,12 +134,13 @@ async def run(args):
                     break
                 await asyncio.sleep(0.05)
 
+    active_at_end = sorted(active)
     for task in tasks:
         task.cancel()
     await asyncio.gather(*tasks, return_exceptions=True)
 
-    expected_deliveries = len(active) * args.messages
-    actual_deliveries = sum(received_counts[i] for i in active)
+    expected_deliveries = len(active_at_end) * args.messages
+    actual_deliveries = sum(received_counts[i] for i in active_at_end)
     report = {
         "target_connections": args.connections,
         "connected": outcomes["connected"],
@@ -147,7 +148,7 @@ async def run(args):
         "unexpected_closures": outcomes["closed"],
         "timeouts": outcomes["timeout"],
         "other_errors": outcomes["error"],
-        "active_at_end_of_idle_phase": len(active),
+        "active_at_end_of_idle_phase": len(active_at_end),
         "connection_latency": summary(connect_ms),
         "broadcast": {
             "messages_sent": args.messages,
