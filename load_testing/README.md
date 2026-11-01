@@ -100,3 +100,66 @@ variable at a time.
 The script is an initial benchmark harness, not a production-grade distributed
 load generator. Its load-generator CPU and file-descriptor limits can become
 the bottleneck at high connection counts.
+
+
+## 6. Concurrent publishers and fan-out contention
+
+The extended harness can have multiple connected clients publish at the same
+time. Each publisher sends `--messages` messages; this is **per publisher**.
+Messages have unique IDs, and the harness tracks each unique
+(recipient, message) pair, reporting missing and duplicate deliveries.
+
+Start with a controlled 500-client workload:
+
+```bash
+.venv/bin/python load_testing/websocket_stress.py \
+    --connections 500 \
+    --duration 15 \
+    --ramp-up 30 \
+    --publishers 10 \
+    --messages 10 \
+    --message-interval 0.2 \
+    --output load_testing/concurrent-500x10.json
+```
+
+This attempts 100 messages from 10 publishers and expects up to 50,000
+client-message deliveries if all 500 clients remain connected and all 100
+messages are published. The report records the actual successful publishes
+and uses those to calculate the expected-delivery denominator. Monitor
+`docker stats` during the run. Do not run against a public or third-party
+deployment.
+
+Useful fields include:
+
+- `messages_published`: successful WebSocket sends from publisher clients.
+- `expected_deliveries`: successfully published messages multiplied by the
+  connected-recipient snapshot taken before publishing.
+- `unique_received_deliveries`: unique recipient/message pairs received.
+- `missing_deliveries` and `duplicate_deliveries`: loss and duplicate counts.
+- `delivery_latency`: end-to-end client-observed fan-out latency.
+- `published_messages_per_second`: publisher send rate.
+- `delivered_fanout_events_per_second`: observed unique deliveries divided
+  by broadcast elapsed time. This is a fan-out event rate, not messages/sec.
+
+## 7. Generate a benchmark report for your CV
+
+Pass the saved JSON files from your runs to the report generator. It supports
+both the original single-publisher output and the concurrent-publisher schema:
+
+```bash
+.venv/bin/python load_testing/summarise_results.py \
+    load_testing/results-100.json \
+    load_testing/results-250.json \
+    load_testing/results-500.json \
+    load_testing/broadcast-250.json \
+    load_testing/broadcast-500.json \
+    load_testing/concurrent-500x10.json \
+    --output load_testing/benchmark-report.md
+```
+
+The Markdown report compares runs, identifies the highest clean connection
+result and largest fully delivered broadcast workload, and drafts a quantified
+CV bullet only when the supplied evidence supports it. Keep the original JSON
+files as supporting benchmark data. The generated bullet must describe the
+tested workload accurately; do not present a local benchmark as production
+capacity or claim sustained throughput from a short burst test.
