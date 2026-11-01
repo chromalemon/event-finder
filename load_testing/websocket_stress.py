@@ -172,6 +172,9 @@ async def run(args):
                     await ws.send(json.dumps({"message": marker}))
                     messages_published += 1
                 except Exception as exc:
+                    # A failed send must not inflate the expected-delivery
+                    # denominator.
+                    sent_at.pop(marker, None)
                     if len(publish_errors) < 20:
                         publish_errors.append({
                             "publisher": client_index,
