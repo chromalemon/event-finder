@@ -185,3 +185,45 @@ real-time fan-out and durable chat-message storage.
 
 Regenerate the Markdown report after persistence verification so the CV
 evidence includes database persistence only when it has actually been checked.
+
+## 9. Diagnose WebSocket connection latency
+
+The ASGI application now emits one structured timing record for each WebSocket
+connection attempt. Restart the web service after pulling the changes so the
+updated ASGI application and logging configuration are loaded:
+
+```bash
+docker compose restart web
+```
+
+Run the load test from the load-generator machine as usual. In another terminal,
+inspect the server-side timings:
+
+```bash
+docker compose logs --since 10m web | grep 'chat_websocket_connect_timing'
+```
+
+Each record contains these fields (all durations are milliseconds):
+
+- `auth_middleware_ms`: Channels cookie, session, and authentication middleware
+  setup, measured before the consumer is called. With the database-backed
+  session engine, this includes session retrieval and user loading.
+- `authorisation_ms`: event lookup and attendee authorisation in PostgreSQL.
+- `group_add_ms`: Redis channel-layer group registration.
+- `accept_ms`: time for the consumer to issue the WebSocket accept.
+- `history_query_and_serialisation_ms`: recent-message query and conversion
+  into the initial history payload.
+- `history_send_ms`: time for the ASGI consumer to send the initial history
+  frame.
+- `consumer_connect_total_ms`: total time spent inside the consumer's
+  `connect()` method.
+- `outcome`: whether the consumer accepted or rejected the connection.
+
+Compare the distributions of these server-side values across the 250 records
+with the load tester's client-side `connection_latency`. The client-side value
+also includes network, TLS/proxy, WebSocket handshake, and scheduling overhead;
+it is not expected to equal the sum of the server-side timings exactly.
+
+The timing log is diagnostic instrumentation, not a benchmark in itself. Keep
+it enabled for diagnosis, but be aware that emitting one log record per
+connection adds a small amount of work during large tests.
