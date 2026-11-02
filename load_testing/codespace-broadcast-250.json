@@ -1,0 +1,81 @@
+{
+  "event_id": 1,
+  "test": {
+    "target_connections": 250,
+    "duration_seconds": 15.0,
+    "ramp_up_seconds": 5.0,
+    "publishers_requested": 1,
+    "publishers_active": 1,
+    "messages_per_publisher": 10,
+    "message_interval_seconds": 0.2,
+    "broadcast_timeout_seconds": 15
+  },
+  "connections": {
+    "connected": 250,
+    "failed_or_rejected": 0,
+    "unexpected_closures": 0,
+    "timeouts": 0,
+    "other_errors": 0,
+    "active_at_end_of_idle_phase": 250,
+    "active_at_end_of_broadcast": 250,
+    "connection_latency": {
+      "min_ms": 300.31,
+      "mean_ms": 7737.64,
+      "p50_ms": 8630.77,
+      "p95_ms": 10169.59,
+      "p99_ms": 10237.78,
+      "max_ms": 10795.66
+    }
+  },
+  "broadcast": {
+    "messages_attempted": 10,
+    "messages_published": 10,
+    "expected_deliveries": 2500,
+    "unique_received_deliveries": 2500,
+    "missing_deliveries": 0,
+    "duplicate_deliveries": 0,
+    "delivery_ratio": 1.0,
+    "delivery_latency": {
+      "min_ms": 62.22,
+      "mean_ms": 173.86,
+      "p50_ms": 175.12,
+      "p95_ms": 248.3,
+      "p99_ms": 263.65,
+      "max_ms": 275.21
+    },
+    "publish_duration_ms": 2009.96,
+    "broadcast_elapsed_ms": 2086.77,
+    "published_messages_per_second": 4.98,
+    "delivered_fanout_events_per_second": 1198.03,
+    "deliveries_per_client": {
+      "min": 10,
+      "mean": 10.0,
+      "max": 10
+    },
+    "publish_errors": [],
+    "published_message_markers": [
+      "loadtest:653c1c1abd1e4b028d0ae09e63e810ec:0:0",
+      "loadtest:f2e730a1724c4ed0b5850f67e86af8ce:0:1",
+      "loadtest:5a8267644bf74019a69eb1f256999e6d:0:2",
+      "loadtest:602e0b4dcc53439597917e049b636cf1:0:3",
+      "loadtest:cc64a033ecaa4390afe3b28cc5be754a:0:4",
+      "loadtest:63ed426f1bd04d249c97ae8353114921:0:5",
+      "loadtest:e1b3f2f69e7b416d95feaa255dfce602:0:6",
+      "loadtest:0b348368cc304cd6b674fc0a83b9fb71:0:7",
+      "loadtest:23579ad3fd884ef0aa1ad4b18674c6f1:0:8",
+      "loadtest:f1df9d9e9ebf4aa086a5bd4010e6d704:0:9"
+    ]
+  },
+  "sample_errors": [],
+  "persistence": {
+    "event_id": 1,
+    "messages_published": 10,
+    "messages_persisted": 10,
+    "missing_messages": 0,
+    "duplicate_database_rows": 0,
+    "persistence_ratio": 1.0,
+    "verified_at_utc": "2026-11-02T17:33:48.786522+00:00",
+    "sample_missing_markers": [],
+    "sample_duplicate_markers": []
+  }
+}

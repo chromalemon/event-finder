@@ -18,22 +18,21 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         Connect to the WebSocket.
         """
 
-        user = self.scope["user"]
-
-        if not user.is_authenticated:
-            await self.close()
-            return
-        
-        user_id = user.pk
-
-
-        ok = await self._user_is_allowed(user_id, self.event_id)
-
         self.event_id = self.scope["url_route"]["kwargs"].get("event_id")
         if not self.event_id:
             await self.close()
             return
 
+        user = self.scope["user"]
+
+        if not user.is_authenticated:
+            await self.close()
+            return
+
+        user_id = user.pk
+        self.user_id = user_id
+
+        ok = await self._user_is_allowed(user_id, self.event_id)
         if not ok:
             await self.close()
             return
@@ -79,7 +78,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         user = self.scope.get("user")
         saved_meta = None
         try:
-            saved_meta = await self._save_message(self.event_id, user.id, message)
+            saved_meta = await self._save_message(self.event_id, self.user_id, message)
         except Exception:
             logger.exception("Failed to save message")
 

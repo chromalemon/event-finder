@@ -1,0 +1,76 @@
+{
+  "event_id": 1,
+  "test": {
+    "target_connections": 10,
+    "duration_seconds": 15.0,
+    "ramp_up_seconds": 5.0,
+    "publishers_requested": 1,
+    "publishers_active": 1,
+    "messages_per_publisher": 5,
+    "message_interval_seconds": 0.2,
+    "broadcast_timeout_seconds": 15
+  },
+  "connections": {
+    "connected": 10,
+    "failed_or_rejected": 0,
+    "unexpected_closures": 0,
+    "timeouts": 0,
+    "other_errors": 0,
+    "active_at_end_of_idle_phase": 10,
+    "active_at_end_of_broadcast": 10,
+    "connection_latency": {
+      "min_ms": 211.08,
+      "mean_ms": 285.67,
+      "p50_ms": 276.36,
+      "p95_ms": 381.44,
+      "p99_ms": 381.44,
+      "max_ms": 381.44
+    }
+  },
+  "broadcast": {
+    "messages_attempted": 5,
+    "messages_published": 5,
+    "expected_deliveries": 50,
+    "unique_received_deliveries": 50,
+    "missing_deliveries": 0,
+    "duplicate_deliveries": 0,
+    "delivery_ratio": 1.0,
+    "delivery_latency": {
+      "min_ms": 45.44,
+      "mean_ms": 54.59,
+      "p50_ms": 51.73,
+      "p95_ms": 61.5,
+      "p99_ms": 80.85,
+      "max_ms": 80.85
+    },
+    "publish_duration_ms": 1007.17,
+    "broadcast_elapsed_ms": 1007.2,
+    "published_messages_per_second": 4.96,
+    "delivered_fanout_events_per_second": 49.64,
+    "deliveries_per_client": {
+      "min": 5,
+      "mean": 5.0,
+      "max": 5
+    },
+    "publish_errors": [],
+    "published_message_markers": [
+      "loadtest:10d5494d638f401b9eff7d94a74f4a36:0:0",
+      "loadtest:be98ff19d2ae4b9fba50c18c9974866f:0:1",
+      "loadtest:ba8bbd7b79e04a828a4248628c70b610:0:2",
+      "loadtest:8947da3093fc46c68d8826a4e4cfa804:0:3",
+      "loadtest:5ab2310c235643e69dc9daf99322f0ae:0:4"
+    ]
+  },
+  "sample_errors": [],
+  "persistence": {
+    "event_id": 1,
+    "messages_published": 5,
+    "messages_persisted": 5,
+    "missing_messages": 0,
+    "duplicate_database_rows": 0,
+    "persistence_ratio": 1.0,
+    "verified_at_utc": "2026-11-02T17:26:23.980419+00:00",
+    "sample_missing_markers": [],
+    "sample_duplicate_markers": []
+  }
+}
