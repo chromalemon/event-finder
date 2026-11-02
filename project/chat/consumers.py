@@ -17,17 +17,20 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         """
         Connect to the WebSocket.
         """
-        self.event_id = self.scope["url_route"]["kwargs"].get("event_id")
-        if not self.event_id:
+
+        user = self.scope["user"]
+
+        if not user.is_authenticated:
             await self.close()
             return
+        
+        user_id = user.pk
 
-        try:
-            ok = await self._user_is_allowed(
-                self.scope.get("user"), self.event_id
-            )
-        except Exception:
-            logger.exception("Failed to authenticate user")
+
+        ok = await self._user_is_allowed(user_id, self.event_id)
+
+        self.event_id = self.scope["url_route"]["kwargs"].get("event_id")
+        if not self.event_id:
             await self.close()
             return
 
@@ -52,12 +55,15 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         """
         Disconnect from the WebSocket and remove from the group.
         """
-        try:
-            await self.channel_layer.group_discard(
-                self.group_name, self.channel_name
-            )
-        except Exception:
-            logger.exception("Failed to disconnect from chat")
+
+        if hasattr(self, "group_name"):
+
+            try:
+                await self.channel_layer.group_discard(
+                    self.group_name, self.channel_name
+                )
+            except Exception:
+                logger.exception("Failed to disconnect from chat")
 
     async def receive(self, text_data=None, bytes_data=None):
         """
@@ -73,7 +79,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         user = self.scope.get("user")
         saved_meta = None
         try:
-            saved_meta = await self._save_message(self.event_id, user, message)
+            saved_meta = await self._save_message(self.event_id, user.id, message)
         except Exception:
             logger.exception("Failed to save message")
 
@@ -110,7 +116,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
-    def _user_is_allowed(self, user, event_id):
+    def _user_is_allowed(self, user_id, event_id):
         """
         Check if the user is allowed to access the chat for the given event.
         """
@@ -120,18 +126,18 @@ class EventChatConsumer(AsyncWebsocketConsumer):
             event = Event.objects.get(pk=event_id)
         except Event.DoesNotExist:
             return False
-        if (
-            user
-            and getattr(user, "is_authenticated", False)
-            and event.host_id == getattr(user, "pk", None)
-        ):
+        
+        if event.host_id == user_id:
             return True
+        
         return EventAttendee.objects.filter(
-            event=event, user=user, status="going"
+            event_id=event_id,
+            user_id=user_id,
+            status="going"
         ).exists()
 
     @database_sync_to_async
-    def _save_message(self, event_id, user, message_text):
+    def _save_message(self, event_id, user_id, message_text):
         """
         Save a chat message to the database
         and return metadata about the saved message.
@@ -139,11 +145,9 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         from .models import ChatMessage
 
         kwargs = {}
-
-        if not (user and getattr(user, "is_authenticated", False)):
-            return None
+        
         kwargs["event_id"] = event_id
-        kwargs["user_id"] = getattr(user, "pk", None)
+        kwargs["user_id"] = user_id
         kwargs["content"] = message_text
 
         msg = ChatMessage.objects.create(**kwargs)
