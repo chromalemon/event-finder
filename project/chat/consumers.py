@@ -39,7 +39,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
             stage_started_ns = perf_counter_ns()
             try:
                 allowed = await self._user_is_allowed(
-                    self.user_id, self.event_id
+                    self.user_id, self.event_id, timings
                 )
             finally:
                 timings["authorisation_ms"] = (
@@ -71,7 +71,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
                 stage_started_ns = perf_counter_ns()
                 try:
                     recent = await self._get_recent_messages(
-                        self.event_id, limit=50
+                        self.event_id, limit=50, timings=timings
                     )
                 finally:
                     timings["history_query_and_serialisation_ms"] = (
@@ -176,25 +176,34 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
-    def _user_is_allowed(self, user_id, event_id):
+    def _user_is_allowed(self, user_id, event_id, timings):
         """
-        Check if the user is allowed to access the chat for the given event.
-        """
-        from events.models import Event, EventAttendee
+        Check chat access and measure synchronous execution time.
 
+        The caller's outer timer also includes time queued for a
+        thread-sensitive database worker. This inner timer does not.
+        """
+        sync_started_ns = perf_counter_ns()
         try:
-            event = Event.objects.get(pk=event_id)
-        except Event.DoesNotExist:
-            return False
+            from events.models import Event, EventAttendee
 
-        if event.host_id == user_id:
-            return True
+            try:
+                event = Event.objects.get(pk=event_id)
+            except Event.DoesNotExist:
+                return False
 
-        return EventAttendee.objects.filter(
-            event_id=event_id,
-            user_id=user_id,
-            status="going",
-        ).exists()
+            if event.host_id == user_id:
+                return True
+
+            return EventAttendee.objects.filter(
+                event_id=event_id,
+                user_id=user_id,
+                status="going",
+            ).exists()
+        finally:
+            timings["authorisation_sync_execution_ms"] = (
+                perf_counter_ns() - sync_started_ns
+            ) / 1_000_000
 
     @database_sync_to_async
     def _save_message(self, event_id, user_id, message_text):
@@ -217,29 +226,36 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         return meta
 
     @database_sync_to_async
-    def _get_recent_messages(self, event_id, limit=50):
+    def _get_recent_messages(self, event_id, limit=50, timings=None):
         """
-        Retrieve recent chat messages for the given event.
+        Retrieve recent chat messages and measure synchronous execution time.
         """
-        from .models import ChatMessage
+        sync_started_ns = perf_counter_ns()
+        try:
+            from .models import ChatMessage
 
-        qs = (
-            ChatMessage.objects.filter(event_id=event_id)
-            .select_related("user")
-            .order_by("-pk")[:limit]
-        )
-        out = []
-        for message in reversed(list(qs)):
-            user = getattr(message, "user", "anon")
-            username = getattr(user, "username", str(user))
-            val = message.sent_at
-
-            out.append(
-                {
-                    "username": username,
-                    "message": message.content,
-                    "timestamp": val.isoformat() if val else None,
-                    "id": getattr(message, "pk", None),
-                }
+            qs = (
+                ChatMessage.objects.filter(event_id=event_id)
+                .select_related("user")
+                .order_by("-pk")[:limit]
             )
-        return out
+            out = []
+            for message in reversed(list(qs)):
+                user = getattr(message, "user", "anon")
+                username = getattr(user, "username", str(user))
+                val = message.sent_at
+
+                out.append(
+                    {
+                        "username": username,
+                        "message": message.content,
+                        "timestamp": val.isoformat() if val else None,
+                        "id": getattr(message, "pk", None),
+                    }
+                )
+            return out
+        finally:
+            if timings is not None:
+                timings["history_sync_execution_ms"] = (
+                    perf_counter_ns() - sync_started_ns
+                ) / 1_000_000
