@@ -69,22 +69,26 @@ class EventChatConsumer(AsyncWebsocketConsumer):
 
             try:
                 stage_started_ns = perf_counter_ns()
-                recent = await self._get_recent_messages(
-                    self.event_id, limit=50
-                )
-                timings["history_query_and_serialisation_ms"] = (
-                    perf_counter_ns() - stage_started_ns
-                ) / 1_000_000
+                try:
+                    recent = await self._get_recent_messages(
+                        self.event_id, limit=50
+                    )
+                finally:
+                    timings["history_query_and_serialisation_ms"] = (
+                        perf_counter_ns() - stage_started_ns
+                    ) / 1_000_000
 
                 stage_started_ns = perf_counter_ns()
-                await self.send(
-                    text_data=json.dumps(
-                        {"type": "history", "messages": recent}
+                try:
+                    await self.send(
+                        text_data=json.dumps(
+                            {"type": "history", "messages": recent}
+                        )
                     )
-                )
-                timings["history_send_ms"] = (
-                    perf_counter_ns() - stage_started_ns
-                ) / 1_000_000
+                finally:
+                    timings["history_send_ms"] = (
+                        perf_counter_ns() - stage_started_ns
+                    ) / 1_000_000
             except Exception:
                 logger.exception("Failed to load or send recent chat messages")
                 timings["history_failed"] = True
