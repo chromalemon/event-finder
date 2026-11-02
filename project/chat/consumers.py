@@ -165,9 +165,11 @@ class EventChatConsumer(AsyncWebsocketConsumer):
         """
         from .models import ChatMessage
 
-        qs = ChatMessage.objects.filter(event_id=event_id)
-
-        qs = qs.order_by("-pk")[:limit]
+        qs = (
+            ChatMessage.objects.filter(event_id=event_id)
+            .select_related("user")
+            .order_by("-pk")[:limit]
+        )
         out = []
         for m in reversed(list(qs)):
             u = getattr(m, "user", "anon")
