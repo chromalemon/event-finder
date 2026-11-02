@@ -221,3 +221,22 @@ if not DEBUG:
             "BACKEND": "whitenoise.storage." + path,
         },
     }
+
+# Emit WebSocket connection timing records to the container console.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "chat_performance_console": {
+            "class": "logging.StreamHandler",
+            "level": "INFO",
+        },
+    },
+    "loggers": {
+        "chat.performance": {
+            "handlers": ["chat_performance_console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
