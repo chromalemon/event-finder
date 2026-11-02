@@ -15,7 +15,23 @@ TIMING_FIELDS = (
     "history_query_and_serialisation_ms",
     "history_send_ms",
     "consumer_connect_total_ms",
+    "authorisation_sync_execution_ms",
+    "history_sync_execution_ms",
 )
+
+# (derived name, outer await timing, inner synchronous execution timing).
+# outer - inner approximates time queued for the thread-sensitive database
+# worker, plus small wrapper and scheduling overheads.
+WAIT_PAIRS = (
+    ("authorisation_worker_wait_ms", "authorisation_ms",
+     "authorisation_sync_execution_ms"),
+    ("history_worker_wait_ms", "history_query_and_serialisation_ms",
+     "history_sync_execution_ms"),
+)
+
+
+def is_number(value):
+    return isinstance(value, (int, float)) and math.isfinite(value)
 
 
 def percentile(values, p):
@@ -76,11 +92,42 @@ def main():
             record.get("timings", {}).get(field)
             for record in records
         ]
-        values = [
-            value for value in values
-            if isinstance(value, (int, float)) and math.isfinite(value)
-        ]
+        values = [value for value in values if is_number(value)]
         summary["timings"][field] = summarise(values)
+
+    # Per-record differences, so each wait is paired with its own execution.
+    summary["derived"] = {}
+    for name, outer_field, inner_field in WAIT_PAIRS:
+        waits = []
+        inner_values = []
+        for record in records:
+            timings = record.get("timings", {})
+            outer = timings.get(outer_field)
+            inner = timings.get(inner_field)
+            if is_number(outer) and is_number(inner):
+                waits.append(outer - inner)
+                inner_values.append(inner)
+        summary["derived"][name] = summarise(waits)
+        if waits:
+            total_outer = sum(waits) + sum(inner_values)
+            summary["derived"][name]["wait_share_of_outer"] = round(
+                sum(waits) / total_outer, 3
+            ) if total_outer else None
+
+    # If one thread runs all synchronous ORM work, the summed execution time
+    # is a lower bound on how long the last connection had to wait.
+    summary["derived"]["summed_sync_execution_ms"] = round(
+        sum(
+            record.get("timings", {}).get(field, 0)
+            for record in records
+            for field in (
+                "authorisation_sync_execution_ms",
+                "history_sync_execution_ms",
+            )
+            if is_number(record.get("timings", {}).get(field))
+        ),
+        2,
+    )
 
     output = json.dumps(summary, indent=2)
     print(output)
