@@ -7,6 +7,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+performance_logger = logging.getLogger("chat.performance")
 
 
 class EventChatConsumer(AsyncWebsocketConsumer):
@@ -94,7 +95,7 @@ class EventChatConsumer(AsyncWebsocketConsumer):
             timings["auth_middleware_ms"] = self.scope.get(
                 "chat_auth_middleware_ms"
             )
-            logger.info(
+            performance_logger.info(
                 "chat_websocket_connect_timing %s",
                 json.dumps(
                     {
