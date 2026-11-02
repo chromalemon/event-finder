@@ -9,14 +9,17 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 
 import os
 
-import chat.routing
-from channels.routing import ProtocolTypeRouter, URLRouter
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "event_finder.settings")
+
 from django.core.asgi import get_asgi_application
 
-from chat.middleware import WebSocketAuthTimingMiddleware
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "event_finder.settings")
 django_asgi_app = get_asgi_application()
+
+# Import application modules only after Django has populated the app registry.
+import chat.routing
+from channels.routing import ProtocolTypeRouter, URLRouter
+
+from chat.middleware import WebSocketAuthTimingMiddleware
 
 application = ProtocolTypeRouter(
     {
