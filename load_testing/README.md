@@ -227,3 +227,17 @@ it is not expected to equal the sum of the server-side timings exactly.
 The timing log is diagnostic instrumentation, not a benchmark in itself. Keep
 it enabled for diagnosis, but be aware that emitting one log record per
 connection adds a small amount of work during large tests.
+
+To aggregate the records into percentiles rather than inspecting 250 individual
+lines, capture the web logs immediately after a test and run the summariser:
+
+```bash
+docker compose logs --since 10m web > load_testing/websocket-server.log
+.venv/bin/python load_testing/summarise_connect_timings.py \
+    load_testing/websocket-server.log \
+    --output load_testing/connect-timings-250.json
+```
+
+The summary reports count, mean, p50, p95, p99, and maximum for each stage,
+along with accepted/rejected connection counts. Capture logs soon after each
+run so the summary does not mix multiple benchmarks.
