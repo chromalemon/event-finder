@@ -19,6 +19,7 @@ class ChatMessage(models.Model):
 
     class Meta:
         ordering = ["sent_at"]
+        indexes = [models.Index(fields=["event", "-id"], name="chat_event_latest_idx")]
 
     def __str__(self):
         return (
