@@ -1,0 +1,70 @@
+{
+  "event_id": 4,
+  "test": {
+    "target_connections": 500,
+    "duration_seconds": 15.0,
+    "ramp_up_seconds": 5.0,
+    "publishers_requested": 1,
+    "publishers_active": 1,
+    "messages_per_publisher": 10,
+    "message_interval_seconds": 0.5,
+    "broadcast_timeout_seconds": 15
+  },
+  "connections": {
+    "connected": 500,
+    "failed_or_rejected": 0,
+    "unexpected_closures": 0,
+    "timeouts": 0,
+    "other_errors": 0,
+    "active_at_end_of_idle_phase": 500,
+    "active_at_end_of_broadcast": 500,
+    "connection_latency": {
+      "min_ms": 8.93,
+      "mean_ms": 190.69,
+      "p50_ms": 228.09,
+      "p95_ms": 302.94,
+      "p99_ms": 312.35,
+      "max_ms": 318.12
+    }
+  },
+  "broadcast": {
+    "messages_attempted": 10,
+    "messages_published": 10,
+    "expected_deliveries": 5000,
+    "unique_received_deliveries": 5000,
+    "missing_deliveries": 0,
+    "duplicate_deliveries": 0,
+    "delivery_ratio": 1.0,
+    "delivery_latency": {
+      "min_ms": 26.89,
+      "mean_ms": 132.36,
+      "p50_ms": 128.7,
+      "p95_ms": 192.53,
+      "p99_ms": 219.43,
+      "max_ms": 220.29
+    },
+    "publish_duration_ms": 5009.01,
+    "broadcast_elapsed_ms": 5009.03,
+    "published_messages_per_second": 2.0,
+    "delivered_fanout_events_per_second": 998.2,
+    "deliveries_per_client": {
+      "min": 10,
+      "mean": 10.0,
+      "max": 10
+    },
+    "publish_errors": [],
+    "published_message_markers": [
+      "loadtest:f669f2d27c0c4c6fa145001c1c64bc36:0:0",
+      "loadtest:b2420bacad3744b08245dd8d29e7e09b:0:1",
+      "loadtest:684a5cc5e18347a18decebb3c7086c1f:0:2",
+      "loadtest:15d0385758734f56897afc1b9d0632cc:0:3",
+      "loadtest:7cd516adc542494ca6f28c868a2eaf0b:0:4",
+      "loadtest:1d689fc780fe4eebbde937ab10109de9:0:5",
+      "loadtest:f2e0658ad622416c9d8ac564bbdf7a0f:0:6",
+      "loadtest:9b8a6cca6c66497dbd5921cf8f609a78:0:7",
+      "loadtest:c4b709ac3577437f80833dcd84062ff7:0:8",
+      "loadtest:0206e2f6d339431297f3f13b4ac6e309:0:9"
+    ]
+  },
+  "sample_errors": []
+}

@@ -1,0 +1,72 @@
+{
+  "records": 250,
+  "malformed_records": 0,
+  "outcomes": {
+    "accepted": 250
+  },
+  "timings": {
+    "auth_middleware_ms": {
+      "count": 250,
+      "min_ms": 21.83,
+      "mean_ms": 1510.8,
+      "p50_ms": 1685.04,
+      "p95_ms": 2344.28,
+      "p99_ms": 2356.32,
+      "max_ms": 2365.0
+    },
+    "authorisation_ms": {
+      "count": 250,
+      "min_ms": 170.23,
+      "mean_ms": 1934.37,
+      "p50_ms": 1902.92,
+      "p95_ms": 2717.36,
+      "p99_ms": 2820.68,
+      "max_ms": 2846.34
+    },
+    "group_add_ms": {
+      "count": 250,
+      "min_ms": 0.43,
+      "mean_ms": 0.79,
+      "p50_ms": 0.63,
+      "p95_ms": 1.6,
+      "p99_ms": 2.87,
+      "max_ms": 3.06
+    },
+    "accept_ms": {
+      "count": 250,
+      "min_ms": 0.09,
+      "mean_ms": 0.14,
+      "p50_ms": 0.12,
+      "p95_ms": 0.25,
+      "p99_ms": 0.37,
+      "max_ms": 0.89
+    },
+    "history_query_and_serialisation_ms": {
+      "count": 250,
+      "min_ms": 329.37,
+      "mean_ms": 2282.52,
+      "p50_ms": 2392.22,
+      "p95_ms": 2806.14,
+      "p99_ms": 2857.64,
+      "max_ms": 2858.67
+    },
+    "history_send_ms": {
+      "count": 250,
+      "min_ms": 0.23,
+      "mean_ms": 0.36,
+      "p50_ms": 0.32,
+      "p95_ms": 0.45,
+      "p99_ms": 0.97,
+      "max_ms": 2.0
+    },
+    "consumer_connect_total_ms": {
+      "count": 250,
+      "min_ms": 503.1,
+      "mean_ms": 4218.2,
+      "p50_ms": 4343.76,
+      "p95_ms": 4786.64,
+      "p99_ms": 4834.67,
+      "max_ms": 4835.74
+    }
+  }
+}

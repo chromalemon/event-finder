@@ -1,0 +1,113 @@
+{
+  "records": 288,
+  "malformed_records": 0,
+  "outcomes": {
+    "accepted": 288
+  },
+  "timings": {
+    "auth_middleware_ms": {
+      "count": 288,
+      "min_ms": 1.71,
+      "mean_ms": 4.06,
+      "p50_ms": 3.11,
+      "p95_ms": 9.12,
+      "p99_ms": 16.25,
+      "max_ms": 20.63
+    },
+    "authorisation_ms": {
+      "count": 288,
+      "min_ms": 1.52,
+      "mean_ms": 3.55,
+      "p50_ms": 2.52,
+      "p95_ms": 9.1,
+      "p99_ms": 16.98,
+      "max_ms": 18.93
+    },
+    "group_add_ms": {
+      "count": 288,
+      "min_ms": 0.32,
+      "mean_ms": 0.84,
+      "p50_ms": 0.6,
+      "p95_ms": 2.09,
+      "p99_ms": 4.19,
+      "max_ms": 5.92
+    },
+    "accept_ms": {
+      "count": 288,
+      "min_ms": 0.08,
+      "mean_ms": 0.18,
+      "p50_ms": 0.13,
+      "p95_ms": 0.45,
+      "p99_ms": 1.19,
+      "max_ms": 2.22
+    },
+    "history_query_and_serialisation_ms": {
+      "count": 288,
+      "min_ms": 2.34,
+      "mean_ms": 4.97,
+      "p50_ms": 3.94,
+      "p95_ms": 10.04,
+      "p99_ms": 16.47,
+      "max_ms": 19.47
+    },
+    "history_send_ms": {
+      "count": 288,
+      "min_ms": 0.17,
+      "mean_ms": 0.31,
+      "p50_ms": 0.27,
+      "p95_ms": 0.56,
+      "p99_ms": 1.21,
+      "max_ms": 2.11
+    },
+    "consumer_connect_total_ms": {
+      "count": 288,
+      "min_ms": 4.67,
+      "mean_ms": 9.88,
+      "p50_ms": 8.03,
+      "p95_ms": 20.7,
+      "p99_ms": 30.34,
+      "max_ms": 39.85
+    },
+    "authorisation_sync_execution_ms": {
+      "count": 288,
+      "min_ms": 1.32,
+      "mean_ms": 2.2,
+      "p50_ms": 1.98,
+      "p95_ms": 3.65,
+      "p99_ms": 5.12,
+      "max_ms": 7.09
+    },
+    "history_sync_execution_ms": {
+      "count": 288,
+      "min_ms": 1.97,
+      "mean_ms": 2.97,
+      "p50_ms": 2.77,
+      "p95_ms": 4.48,
+      "p99_ms": 6.79,
+      "max_ms": 11.14
+    }
+  },
+  "derived": {
+    "authorisation_worker_wait_ms": {
+      "count": 288,
+      "min_ms": 0.19,
+      "mean_ms": 1.35,
+      "p50_ms": 0.33,
+      "p95_ms": 6.54,
+      "p99_ms": 11.84,
+      "max_ms": 14.62,
+      "wait_share_of_outer": 0.38
+    },
+    "history_worker_wait_ms": {
+      "count": 288,
+      "min_ms": 0.27,
+      "mean_ms": 2.0,
+      "p50_ms": 0.89,
+      "p95_ms": 6.81,
+      "p99_ms": 12.0,
+      "max_ms": 16.13,
+      "wait_share_of_outer": 0.402
+    },
+    "summed_sync_execution_ms": 1488.96
+  }
+}
